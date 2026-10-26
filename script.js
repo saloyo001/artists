@@ -33,11 +33,11 @@ function renderProducts() {
   productGrid.innerHTML = visibleProducts.map((product) => `
     <article class="product-card" data-product-id="${product.id}" tabindex="0" aria-label="View ${escapeHtml(product.name)}">
       <div class="product-image-wrap">
-        <img src="${product.image}" alt="${escapeHtml(product.name)}" loading="lazy">
-        <span class="product-tag">ARTIST LISTING</span>
-        <button class="quick-add" data-add="${product.id}" aria-label="Add ${escapeHtml(product.name)} to cart">+</button>
-      </div>
-      <div class="product-info">
+        <img src="${product.image}" alt="${escapeHtml(product.name)}" loading="lazy"> 
+       <span class="product-tag">ARTIST LISTING</span>
+       <button class="wishlist-toggle" data-wishlist="${product.id}" aria-label="Add ${escapeHtml(product.name)} to favourites" aria-pressed="false">♡</button>
+       <button class="quick-add" data-add="${product.id}" aria-label="Add ${escapeHtml(product.name)} to cart">+</button>
+       <div class="product-info">
         <span class="product-category">${escapeHtml(product.category)}</span>
         <h3>${escapeHtml(product.name)}</h3>
         <span class="product-maker">By ${escapeHtml(product.maker)}</span>
