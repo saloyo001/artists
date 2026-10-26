@@ -64,13 +64,12 @@ if (signupForm) {
     try {
       const client = getSupabaseClient();
       const { data, error } = await client.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name },
-          emailRedirectTo: window.location.origin + "/login.html"
-        }
-      });
+  email: email,
+  password: password,
+  options: {
+    emailRedirectTo: window.location.origin + "/login.html"
+  }
+});
 
       if (error) throw error;
 
@@ -85,3 +84,32 @@ if (signupForm) {
     }
   });
 }
+async function updateAuthButton() {
+  const link = document.getElementById("auth-link");
+  if (!link) return; // this page has no button
+
+  const client = getSupabaseClient();
+  const { data: { session } } = await client.auth.getSession();
+
+  if (session) {
+    const user = session.user;
+    const name = user.user_metadata?.name
+      || user.user_metadata?.full_name
+      || user.email;
+
+    link.textContent = "Log out (" + name + ")";
+    link.href = "#";
+    link.onclick = async (e) => {
+      e.preventDefault();
+      await client.auth.signOut();
+      window.location.href = "index.html";
+    };
+  } else {
+    link.textContent = "Log in";
+    link.href = "login.html";
+    link.onclick = null;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", updateAuthButton);
+getSupabaseClient().auth.onAuthStateChange(updateAuthButton);
