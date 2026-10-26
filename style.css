@@ -202,3 +202,58 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
 .empty-listings { grid-column: 1 / -1; padding: 22px; border: 1px dashed #c9d9cc; border-radius: 5px; color: var(--muted); font-size: .85rem; text-align: center; }
 @media (max-width: 900px) { .studio-layout { grid-template-columns: 1fr; gap: 20px; } .my-listings { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 600px) { .upload-form { padding: 18px; } .form-two-col, .my-listings { grid-template-columns: 1fr; } .my-listings-heading { align-items: start; flex-direction: column; gap: 8px; } }
+.login-page {
+min-height: 100vh;
+display: flex;
+justify-content: center;
+align-items: center;
+background: #f8f5ed;
+padding: 20px;
+}
+
+.login-form {
+width: 100%;
+max-width: 400px;
+padding: 35px;
+background: white;
+border-radius: 16px;
+box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+}
+
+.login-form h1 {
+color: #1b3b2f;
+margin-bottom: 10px;
+}
+
+.login-form label {
+display: block;
+margin-top: 20px;
+margin-bottom: 8px;
+}
+
+.login-form input {
+width: 100%;
+padding: 12px;
+border: 1px solid #ccc;
+border-radius: 6px;
+box-sizing: border-box;
+}
+
+.login-form button {
+width: 100%;
+padding: 13px;
+margin-top: 25px;
+background: #176b45;
+color: white;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+}
+
+.login-form button {
+background: #104b30;
+}
+
+.login-form a {
+color: #b51f2e;
+}
