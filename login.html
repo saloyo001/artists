@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Kenyan Artisans</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="auth-style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+</head>
+<body>
+  <main class="auth-page">
+    <form class="auth-form" id="login-form">
+      <a class="auth-brand" href="index.html">Kenyan <strong>Artisans</strong></a>
+      <h1>Welcome back</h1>
+      <p>Sign in to your Kenyan Artisans account.</p>
+
+      <label for="email">Email address</label>
+      <input type="email" id="email" name="email" autocomplete="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+      <button type="submit">Log in</button>
+      <p class="auth-message" id="login-message" aria-live="polite"></p>
+
+      <p>Don't have an account? <a href="signup.html">Sign up</a></p>
+      <a href="index.html">Back to the marketplace</a>
+    </form>
+  </main>
+</body>
+</html>
