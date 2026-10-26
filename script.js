@@ -156,6 +156,29 @@ document.getElementById("search-focus").addEventListener("click", () => {
   document.getElementById("shop").scrollIntoView({ behavior: "smooth" }); searchInput.focus({ preventScroll: true });
 });
 document.getElementById("open-cart").addEventListener("click", () => { renderCart(); openModal("cart-modal"); });
+
+const settingsButton = document.getElementById("settings-open");
+const settingsModal = document.getElementById("settings-modal");
+const themeSelect = document.getElementById("theme-select");
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("kenyanArtisansTheme", theme);
+}
+
+const savedTheme = localStorage.getItem("kenyanArtisansTheme") || "light";
+applyTheme(savedTheme);
+themeSelect.value = savedTheme;
+
+settingsButton.addEventListener("click", () => {
+  themeSelect.value = document.documentElement.dataset.theme || "light";
+  openModal("settings-modal");
+});
+
+themeSelect.addEventListener("change", () => {
+  applyTheme(themeSelect.value);
+});
+
 document.getElementById("modal-add").addEventListener("click", () => { if (selectedProductId !== null) addToCart(selectedProductId); closeModals(); });
 document.getElementById("cart-items").addEventListener("click", (event) => {
   const button = event.target.closest("[data-remove]");
@@ -166,7 +189,11 @@ document.getElementById("checkout-button").addEventListener("click", () => {
   if (cart.length === 0) showToast("Add some artwork to your basket first.");
   else showToast("Checkout is a demo. Payment integration is needed before real orders.");
 });
-document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", closeModals));
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-modal]")) closeModals();
+});
+
 document.querySelectorAll(".modal-backdrop").forEach((backdrop) => backdrop.addEventListener("click", (event) => { if (event.target === backdrop) closeModals(); }));
 document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeModals(); });
 

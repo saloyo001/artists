@@ -166,13 +166,32 @@
     </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
-    <div class="modal cart-modal"><button class="modal-close" data-close-modal aria-label="Close">×</button><span class="eyebrow">YOUR FINDS</span><h2 id="cart-title">Your art <em>basket.</em></h2><div id="cart-items"></div><div class="cart-total"><span>Subtotal</span><strong id="cart-total">KSh 0</strong></div><p class="demo-note">Demo checkout: this prototype does not process payments.</p><button class="button button-green full" id="checkout-button">Continue to checkout</button></div>
+  <div class="modal-backdrop hidden" id="seller-modal" role="dialog" aria-modal="true" aria-labelledby="seller-title">
+    <div class="modal seller-modal">
+      <button class="modal-close" data-close-modal aria-label="Close">×</button>
+      <span class="eyebrow">FOR KENYAN MAKERS</span>
+      <h2 id="seller-title">Your work belongs <em>here.</em></h2>
+      <p>Use the Artist Studio to upload your artwork, set your price, and publish it to the marketplace.</p>
+      <button class="button button-green full" id="go-to-studio">Go to Artist Studio <span>↗</span></button>
+      <small class="demo-note">Demo listings are stored in this browser only.</small>
+    </div>
   </div>
 
-  <div class="modal-backdrop hidden" id="seller-modal" role="dialog" aria-modal="true" aria-labelledby="seller-title">
-    <div class="modal seller-modal"><button class="modal-close" data-close-modal aria-label="Close">×</button><span class="eyebrow">FOR KENYAN MAKERS</span><h2 id="seller-title">Your work belongs <em>here.</em></h2><p>Use the Artist Studio to upload your artwork, set your price, and publish it to the marketplace.</p><button class="button button-green full" id="go-to-studio">Go to Artist Studio <span>↗</span></button><small class="demo-note">Demo listings are stored in this browser only.</small></div>
+  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal">
+     <button type="button" class="modal-close" data-close-modal onclick="closeModals()" aria-label="Close settings">×</button>
+      <h2 id="settings-title">Settings</h2>
+      <p>Personalize your Kenyan Artisans experience.</p>
+      <label for="theme-select">Appearance</label>
+      <select id="theme-select">
+        <option value="light">Light mode</option>
+        <option value="dark">Dark mode</option>
+      </select>
+    </div>
   </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
+
+  
