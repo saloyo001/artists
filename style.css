@@ -32,10 +32,9 @@
   --muted-color: #b8b2aa;
   --border-color: #3b3b3b;
 }
-
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 90px; }
-body { margin: 0; color: var(--ink); background: var(--cream); font-family: 'DM Sans', sans-serif; }
+body { margin: 0; color: var(--text-color); background: var(--page-bg); font-family: 'DM Sans', sans-serif; }
 button, input, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
@@ -120,10 +119,10 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
 .filter:hover, .filter.active { color: white; background: var(--green); border-color: var(--green); }
 .product-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 29px 21px; }
 .product-card { min-width: 0; cursor: pointer; }
-.product-image-wrap { position: relative; overflow: hidden; aspect-ratio: 4/4.3; background: #e8e1d8; }
+.product-image-wrap { position: relative; overflow: hidden; aspect-ratio: 4/4.3; background: var(--surface-bg); }
 .product-image-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
 .product-card:hover .product-image-wrap img { transform: scale(1.055); }
-.product-tag { position: absolute; top: 12px; left: 12px; padding: 7px 9px; background: white; color: var(--green); font-size: .58rem; letter-spacing: .08em; font-weight: 700; }
+.product-tag { position: absolute; top: 12px; left: 12px; padding: 7px 9px; background: var(--surface-bg); color: var(--green); font-size: .58rem; letter-spacing: .08em; font-weight: 700; }
 .quick-add { position: absolute; right: 12px; bottom: 12px; width: 39px; height: 39px; border: 0; border-radius: 50%; background: white; color: var(--black); font-size: 1.4rem; box-shadow: 0 4px 15px #0002; transition: .2s; }
 .quick-add:hover { color: white; background: var(--red); }
 .product-info { padding: 14px 2px 0; }
@@ -131,7 +130,7 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
 .product-info h3 { margin: 8px 0 5px; font-family: 'Playfair Display', Georgia, serif; font-size: 1.14rem; font-weight: 600; }
 .product-maker { color: var(--muted); font-size: .72rem; }
 .product-price-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
-.product-price { font-weight: 700; font-size: .89rem; }.product-location { color: var(--muted); font-size: .66rem; }
+.product-price { font-weight: 700; font-size: .89rem; color: var(--text-color); }.product-location { color: var(--muted-color); font-size: .66rem; }
 .empty-state { margin: 30px 0 0; color: var(--muted); text-align: center; padding: 35px; border: 1px dashed var(--line); }
 
 .category-section { padding: 75px 8% 95px; background: white; }
