@@ -10,7 +10,8 @@
     <title>Kenyan Artisans | Discover Made-in-Kenya Art</title>
     <link href="style.css" rel="stylesheet" />
     <script defer="" src="script.js"></script>
-     <script src="auth.js" defer></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="auth.js"></script>
   </head>
   <body>
     <div class="announcement">
@@ -53,9 +54,9 @@
           Cart
           <span id="cart-count"> 0 </span>
         </button>
-        <a href="login.html" class="button button-outline small">
+       <a href="login.html" id="auth-link" class="button button-outline small">
     Log in
-  </a>
+</a>
         <button class="button button-dark small" id="seller-open">
           Sell your art
         </button>
