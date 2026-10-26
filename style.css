@@ -230,24 +230,297 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --page-bg: #171817;
-  --surface-bg: #222422;
-  --text-color: #f4f0e8;
-  --muted-color: #aaa99f;
-  --border-color: #383b36;
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  --page-bg: #171a18;
+  --surface-bg: #232724;
+  --text-color: #f5f1e9;
+  --muted-color: #c0c5bd;
+  --border-color: #3c443e;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .28);
 }
 
-[data-theme="dark"] body {
+/* Main page and all major sections */
+[data-theme="dark"] body,
+[data-theme="dark"] .section,
+[data-theme="dark"] .artisan-section {
   background: var(--page-bg);
   color: var(--text-color);
 }
 
-[data-theme="dark"] header,
-[data-theme="dark"] nav,
-[data-theme="dark"] main,
-[data-theme="dark"] section,
-[data-theme="dark"] footer {
+[data-theme="dark"] .site-header {
+  background: rgba(29, 33, 30, .97);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .hero,
+[data-theme="dark"] .category-section,
+[data-theme="dark"] .trust-strip {
+  background: #1d211e;
   color: var(--text-color);
   border-color: var(--border-color);
+}
+
+[data-theme="dark"] .artist-studio {
+  background: #1c2820;
+  border-color: #35483a;
+}
+
+/* Text: strong, readable contrast */
+[data-theme="dark"] .site-header,
+[data-theme="dark"] .site-header a,
+[data-theme="dark"] .brand,
+[data-theme="dark"] .icon-button,
+[data-theme="dark"] .menu-toggle,
+[data-theme="dark"] .hero h1,
+[data-theme="dark"] .section h2,
+[data-theme="dark"] .category-section h2,
+[data-theme="dark"] .artisan-copy h2,
+[data-theme="dark"] .studio-copy h3,
+[data-theme="dark"] .upload-form h3,
+[data-theme="dark"] .my-listings-heading h3,
+[data-theme="dark"] .product-info h3,
+[data-theme="dark"] .product-price,
+[data-theme="dark"] .product-maker,
+[data-theme="dark"] .product-category,
+[data-theme="dark"] .product-location,
+[data-theme="dark"] .trust-strip p,
+[data-theme="dark"] .studio-copy p,
+[data-theme="dark"] .check-list li,
+[data-theme="dark"] .hero-proof p,
+[data-theme="dark"] .hero-bottom-line,
+[data-theme="dark"] .section-heading p,
+[data-theme="dark"] .item-count {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .brand strong,
+[data-theme="dark"] .nav-links a:hover,
+[data-theme="dark"] .nav-links a.active,
+[data-theme="dark"] .product-category {
+  color: #83c79b;
+}
+
+[data-theme="dark"] .brand small,
+[data-theme="dark"] .hero-copy > p,
+[data-theme="dark"] .hero-proof small,
+[data-theme="dark"] .floating-note small,
+[data-theme="dark"] .trust-strip small,
+[data-theme="dark"] .field-help,
+[data-theme="dark"] .my-listings-heading span,
+[data-theme="dark"] .my-listing small,
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .empty-listings,
+[data-theme="dark"] .empty-cart {
+  color: var(--muted-color);
+}
+
+/* Navigation */
+[data-theme="dark"] .nav-links a {
+  color: #e0e4dd;
+}
+
+[data-theme="dark"] .cart-button,
+[data-theme="dark"] #settings-open {
+  background: #292f2a;
+  color: #f5f1e9;
+  border-color: #465047;
+}
+
+/* Product cards and search */
+[data-theme="dark"] .product-card,
+[data-theme="dark"] .product-info,
+[data-theme="dark"] .my-listing {
+  background: var(--surface-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .product-tag {
+  background: #303a32;
+  color: #bce6c7;
+}
+
+[data-theme="dark"] .quick-add {
+  background: #f5f1e9;
+  color: #171a18;
+}
+
+[data-theme="dark"] .search-box {
+  background: #202521;
+  color: #e6e9e2;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .search-box input {
+  background: transparent;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .search-box input::placeholder {
+  color: #c0c5bd;
+  opacity: 1;
+}
+
+[data-theme="dark"] .filter {
+  background: #242b25;
+  color: #e2e7df;
+  border-color: #465047;
+}
+
+[data-theme="dark"] .filter:hover,
+[data-theme="dark"] .filter.active {
+  background: var(--green);
+  color: #ffffff;
+  border-color: #19864f;
+}
+
+/* Floating elements */
+[data-theme="dark"] .floating-note {
+  background: #292f2a;
+  color: #f5f1e9;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .photo-label {
+  background: #232724;
+  color: #f5f1e9;
+}
+
+[data-theme="dark"] .hero-bottom-line {
+  border-color: var(--border-color);
+}
+
+/* Artist Studio form: fix invisible labels and fields */
+[data-theme="dark"] .upload-form {
+  background: #222824;
+  color: #f5f1e9;
+  border-color: #414b43;
+}
+
+[data-theme="dark"] .upload-form label,
+[data-theme="dark"] .seller-modal label {
+  color: #f5f1e9;
+}
+
+[data-theme="dark"] .upload-form input,
+[data-theme="dark"] .upload-form select,
+[data-theme="dark"] .upload-form textarea,
+[data-theme="dark"] .seller-modal input,
+[data-theme="dark"] .seller-modal select,
+[data-theme="dark"] #settings-modal select {
+  background: #191e1a;
+  color: #ffffff;
+  border-color: #4a554b;
+}
+
+[data-theme="dark"] .upload-form input::placeholder,
+[data-theme="dark"] .upload-form textarea::placeholder,
+[data-theme="dark"] .seller-modal input::placeholder {
+  color: #c0c5bd;
+  opacity: 1;
+}
+
+[data-theme="dark"] .upload-form input:focus,
+[data-theme="dark"] .upload-form select:focus,
+[data-theme="dark"] .upload-form textarea:focus,
+[data-theme="dark"] .seller-modal input:focus,
+[data-theme="dark"] .seller-modal select:focus {
+  border-color: #83c79b;
+  outline: 2px solid #83c79b40;
+}
+
+[data-theme="dark"] .my-listing button {
+  background: #302b2b;
+  color: #ffc2c2;
+  border-color: #684144;
+}
+
+/* Modals: product details, basket, seller and settings */
+[data-theme="dark"] .modal {
+  background: #222623;
+  color: #f5f1e9;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .modal h2,
+[data-theme="dark"] .modal h3,
+[data-theme="dark"] .modal p,
+[data-theme="dark"] .modal .modal-content,
+[data-theme="dark"] .modal .modal-price,
+[data-theme="dark"] .modal .cart-total {
+  color: #f5f1e9;
+}
+
+[data-theme="dark"] .modal .modal-content p,
+[data-theme="dark"] .modal .seller-modal > p,
+[data-theme="dark"] .modal .cart-row small,
+[data-theme="dark"] .modal .demo-note {
+  color: #c0c5bd;
+}
+
+[data-theme="dark"] .cart-row {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-close {
+  background: #303730;
+  color: #ffffff;
+  border-color: #505a51;
+}
+
+[data-theme="dark"] .modal-backdrop {
+  background: rgba(0, 0, 0, .78);
+}
+
+/* Keep the green call-to-action and dark footer readable */
+[data-theme="dark"] .seller-cta {
+  background: #075b30;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .seller-cta h2,
+[data-theme="dark"] .seller-cta p {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .site-footer {
+  background: #101311;
+  color: #f5f1e9;
+}
+
+[data-theme="dark"] .site-footer p,
+[data-theme="dark"] .footer-links,
+[data-theme="dark"] .site-footer > small {
+  color: #d0d5ce;
+}
+
+[data-theme="dark"] .site-footer a:hover {
+  color: #a6dfb5;
+}
+
+/* Toast notifications and keyboard focus */
+[data-theme="dark"] .toast {
+  background: #292f2a;
+  color: #ffffff;
+  border-color: #c21f32;
+}
+
+[data-theme="dark"] button:focus-visible,
+[data-theme="dark"] a:focus-visible,
+[data-theme="dark"] input:focus-visible,
+[data-theme="dark"] select:focus-visible,
+[data-theme="dark"] textarea:focus-visible {
+  outline: 2px solid #a6dfb5;
+  outline-offset: 3px;
+}
+
+[data-theme="dark"] .hero-actions .button-outline {
+  background: #303a33;
+  color: #ffffff;
+  border: 1px solid #7b9b82;
+}
+
+[data-theme="dark"] .hero-actions .button-outline:hover {
+  background: #08783e;
+  color: #ffffff;
+  border-color: #08783e;
 }
