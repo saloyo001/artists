@@ -209,6 +209,25 @@
   </div>
   </div>
 
+  <div class="modal-backdrop hidden" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+  <div class="modal checkout-modal">
+    <button type="button" class="modal-close" data-close-modal aria-label="Close checkout">×</button>
+    <span class="eyebrow">ALMOST THERE</span>
+    <h2 id="checkout-title">Send your order</h2>
+    <ul class="checkout-summary" id="checkout-summary"></ul>
+    <div class="cart-total-row"><span>Total</span><strong id="checkout-total">KSh 0</strong></div>
+    <form id="checkout-form" class="checkout-form" novalidate>
+      <label>Your name<input name="name" required maxlength="60" autocomplete="name" placeholder="e.g. Amina Wanjiru"></label>
+      <label>Phone number<input name="phone" type="tel" required autocomplete="tel" placeholder="07XX XXX XXX"></label>
+      <label>Delivery town<input name="town" required maxlength="60" placeholder="e.g. Kisumu"></label>
+      <label>Note (optional)<textarea name="note" rows="2" maxlength="200" placeholder="Anything the artist should know?"></textarea></label>
+      <button class="button button-green full" type="submit">Send order on WhatsApp <span>↗</span></button>
+      <p class="form-message" id="checkout-message" aria-live="polite"></p>
+      <small class="demo-note">This opens WhatsApp with your order. Payment is arranged directly with the artist.</small>
+     </form>
+    </div>
+   </div>
+
   <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <div class="modal">
      <button type="button" class="modal-close" data-close-modal onclick="closeModals()" aria-label="Close settings">×</button>

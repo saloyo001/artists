@@ -2108,3 +2108,46 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
   40% { box-shadow: 0 0 0 14px rgba(216, 164, 59, .25); }
   100% { box-shadow: 0 0 0 0 rgba(216, 164, 59, 0); }
 }
+
+.checkout-summary {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.checkout-summary li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  animation: rowIn .5s var(--ease-out-expo) both;
+}
+.checkout-summary li:nth-child(2) { animation-delay: .06s; }
+.checkout-summary li:nth-child(3) { animation-delay: .12s; }
+.checkout-summary li:nth-child(n+4) { animation-delay: .18s; }
+
+.checkout-form {
+  display: grid;
+  gap: 12px;
+}
+.checkout-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.checkout-form input,
+.checkout-form textarea {
+  padding: 12px 14px;
+  border: 1px solid rgba(128, 128, 128, .4);
+  border-radius: 12px;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-med) ease;
+}
+.checkout-form input:focus,
+.checkout-form textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(216, 164, 59, .25);
+}

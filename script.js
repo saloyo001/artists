@@ -856,3 +856,99 @@ renderProducts(); renderMyListings(); saveCart();
 
   document.querySelectorAll('a[href="#seller"]').forEach((link) => link.setAttribute("href", "#artist-studio"));
 })();
+
+(() => {
+  const ORDER_WHATSAPP = "254700000000";
+
+  const modal = document.getElementById("checkout-modal");
+  const form = document.getElementById("checkout-form");
+  const summary = document.getElementById("checkout-summary");
+  const totalEl = document.getElementById("checkout-total");
+  const message = document.getElementById("checkout-message");
+  if (!modal || !form) return;
+
+  const SAVED_KEY = "kenyanArtisansCustomer";
+
+  function cartLines() {
+    return cart
+      .map((item) => ({ item, product: products.find((p) => p.id === item.id) }))
+      .filter((line) => line.product);
+  }
+
+  function cartTotal() {
+    return cartLines().reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
+  }
+
+  function openCheckout() {
+    const lines = cartLines();
+    summary.innerHTML = lines.map(({ item, product }) =>
+      `<li><span>${item.quantity} × ${escapeHtml(product.name)}</span><strong>${formatPrice(product.price * item.quantity)}</strong></li>`
+    ).join("");
+    totalEl.textContent = formatPrice(cartTotal());
+    message.textContent = "";
+    try {
+      const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || "{}");
+      ["name", "phone", "town"].forEach((field) => {
+        if (saved[field] && !form.elements[field].value) form.elements[field].value = saved[field];
+      });
+    } catch (error) {}
+    closeModals();
+    openModal("checkout-modal");
+    setTimeout(() => {
+      const firstEmpty = [...form.elements].find((el) => el.name && !el.value);
+      (firstEmpty || form.elements.name).focus({ preventScroll: true });
+    }, 450);
+  }
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("#checkout-button")) return;
+    event.stopPropagation();
+    if (cartLines().length === 0) { showToast("Add some artwork to your basket first."); return; }
+    openCheckout();
+  }, true);
+
+  function normalisePhone(value) {
+    const digits = value.replace(/[\s\-()]/g, "");
+    return /^(?:\+?254|0)[17]\d{8}$/.test(digits) ? digits : null;
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const name = String(data.get("name")).trim();
+    const phone = normalisePhone(String(data.get("phone")));
+    const town = String(data.get("town")).trim();
+    const note = String(data.get("note")).trim();
+
+    if (!name || !town) { message.textContent = "Please enter your name and delivery town."; return; }
+    if (!phone) { message.textContent = "Please enter a valid Kenyan phone number, like 0712 345 678."; return; }
+
+    const lines = cartLines();
+    if (lines.length === 0) { message.textContent = "Your basket is empty."; return; }
+
+    const text = [
+      "Hi! I'd like to order from Kenyan Artisans:",
+      "",
+      ...lines.map(({ item, product }) => `• ${item.quantity} × ${product.name} (by ${product.maker}): ${formatPrice(product.price * item.quantity)}`),
+      "",
+      `Total: ${formatPrice(cartTotal())}`,
+      "",
+      `Name: ${name}`,
+      `Phone: ${phone}`,
+      `Delivery town: ${town}`,
+      note ? `Note: ${note}` : ""
+    ].filter((line, index, all) => line !== "" || (index > 0 && all[index - 1] !== "")).join("\n").trim();
+
+    try { localStorage.setItem(SAVED_KEY, JSON.stringify({ name, phone: String(data.get("phone")).trim(), town })); } catch (error) {}
+
+    const url = `https://wa.me/${ORDER_WHATSAPP}?text=${encodeURIComponent(text)}`;
+    const opened = window.open(url, "_blank", "noopener");
+    if (!opened) window.location.href = url;
+
+    cart = [];
+    saveCart();
+    form.elements.note.value = "";
+    closeModals();
+    showToast("Order ready. Press Send in WhatsApp to finish.");
+  });
+})();
