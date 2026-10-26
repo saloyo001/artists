@@ -13,6 +13,24 @@
   --muted: #706f6b;
   --line: #e9e1d7;
   --shadow: 0 18px 50px rgba(30, 23, 15, .10);
+
+
+  --page-bg: var(--cream);
+  --surface-bg: var(--white);
+  --text-color: var(--ink);
+  --muted-color: var(--muted);
+  --border-color: var(--line);
+}
+
+/* Dark theme colors */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page-bg: #171717;
+  --surface-bg: #242424;
+  --text-color: #f5f0e8;
+  --muted-color: #b8b2aa;
+  --border-color: #3b3b3b;
 }
 
 * { box-sizing: border-box; }
