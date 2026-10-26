@@ -1,248 +1,533 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Discover, support and shop beautiful handmade art from talented Kenyan artisans.">
-  <title>Kenyan Artisans | Discover Made-in-Kenya Art</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
-</head>
-<body>
-  <div class="announcement"><span>🇰🇪</span> Celebrating local creativity — made in Kenya, shared with the world.</div>
-  <header class="site-header">
-    <a class="brand" href="index.html" aria-label="Kenyan Artisans home">
-      <span class="brand-mark">KA</span>
-      <span>Kenyan <strong>Artisans</strong><small>MADE WITH HEART</small></span>
-    </a>
-    <button class="menu-toggle" id="menu-toggle" aria-label="Open navigation" aria-expanded="false">☰</button>
-    <nav class="nav-links" id="nav-links">
-      <a class="active" href="#home">Home</a>
-      <a href="#shop">Explore art</a>
-      <a href="#wishlist">My Wishlist <span id="wishlist-count">0</span></a>
-      <a href="#categories">Categories</a>
-      <a href="#artisans">Our artisans</a>
-      <a href="#artist-studio">Artist studio</a>
-    </nav>
-    <div class="header-actions">
-      <button class="icon-button" id="search-focus" aria-label="Focus product search">⌕</button>
-      <button class="cart-button" id="open-cart">Cart <span id="cart-count">0</span></button>
-      <button id="settings-open" type="button" aria-label="Open settings" title="Settings">⚙</button>
-      <button class="button button-dark small" id="seller-open">Sell your art</button>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta
+      content="Discover, support and shop beautiful handmade art from talented Kenyan artisans."
+      name="description"
+    />
+    <title>Kenyan Artisans | Discover Made-in-Kenya Art</title>
+    <link href="style.css" rel="stylesheet" />
+    <script defer="" src="script.js"></script>
+  </head>
+  <body>
+    <div class="announcement">
+      <span> 🇰🇪 </span>
+      Celebrating local creativity &mdash; made in Kenya, shared with the world.
     </div>
-  </header>
-
-  <main>
-    <section class="hero" id="home">
-      <div class="hero-copy">
-        <span class="eyebrow"><span class="eyebrow-dot"></span> THE HOME OF KENYAN CREATIVITY</span>
-        <h1>Art with a story.<br><em>Made in Kenya.</em></h1>
-        <p>Find one-of-a-kind handmade pieces, meet the makers behind them, and bring a little Kenyan creativity into your world.</p>
-        <div class="hero-actions">
-          <a class="button button-red" href="#shop">Explore the collection <span>↗</span></a>
-          <button class="button button-outline" id="hero-seller">I'm an artisan</button>
-        </div>
-        <div class="hero-proof">
-          <div class="avatar-stack"><span>J</span><span>A</span><span>M</span><span>+</span></div>
-          <p><strong>Local hands. Original art.</strong><br><small>Every piece has a story to tell.</small></p>
-        </div>
+    <header class="site-header">
+      <a aria-label="Kenyan Artisans home" class="brand" href="index.html">
+        <span class="brand-mark"> KA </span>
+        <span>
+          Kenyan
+          <strong> Artisans </strong>
+          <small> MADE WITH HEART </small>
+        </span>
+      </a>
+      <button
+        aria-expanded="false"
+        aria-label="Open navigation"
+        class="menu-toggle"
+        id="menu-toggle"
+      >
+        ☰
+      </button>
+      <nav class="nav-links" id="nav-links">
+        <a class="active" href="#home"> Home </a>
+        <a href="#shop"> Explore art </a>
+        <a href="#categories"> Categories </a>
+        <a href="#artisans"> Our artisans </a>
+        <a href="#artist-studio"> Artist studio </a>
+      </nav>
+      <div class="header-actions">
+        <button
+          aria-label="Focus product search"
+          class="icon-button"
+          id="search-focus"
+        >
+          &telrec;
+        </button>
+        <button class="cart-button" id="open-cart">
+          Cart
+          <span id="cart-count"> 0 </span>
+        </button>
+        <button class="button button-dark small" id="seller-open">
+          Sell your art
+        </button>
       </div>
-      <div class="hero-art" aria-label="Artisan-inspired decorative artwork">
-        <div class="hero-photo hero-photo-main">
-          <img src="https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=1000&q=85" alt="Colourful abstract painting">
-          <span class="photo-label">ART THAT SPEAKS</span>
-        </div>
-        <div class="hero-photo hero-photo-small">
-          <img src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=600&q=85" alt="Handcrafted ceramic pottery">
-        </div>
-        <div class="floating-note"><span>✳</span><div><strong>Crafted with care</strong><small>By Kenyan makers</small></div></div>
-        <div class="hero-stamp">LOCAL<br><b>LOVE</b><br>✳</div>
-      </div>
-      <div class="hero-bottom-line"><span>01 — DISCOVER</span><span>02 — CONNECT</span><span>03 — COLLECT</span></div>
-    </section>
-
-
-<section class="section wishlist-section" id="wishlist">
-  <div class="section-heading">
-    <div>
-      <span class="eyebrow">YOUR PERSONAL COLLECTION</span>
-      <h2>Your <em>Wishlist.</em></h2>
-      <p>Keep the artwork you love close by.</p>
-    </div>
-    <span class="item-count" id="wishlist-total">0 saved pieces</span>
-  </div>
-
-  <div class="product-grid" id="wishlist-grid"></div>
-
-  <p class="empty-state" id="wishlist-empty">
-    You haven't saved any artwork yet. Explore the collection
-    and tap the heart on anything you love.
-  </p>
-</section>
-
-
-    <section class="trust-strip">
-      <div><span>✳</span><p><strong>Made by local hands</strong><small>Celebrate Kenyan talent</small></p></div>
-      <div><span>♡</span><p><strong>Every piece is unique</strong><small>Find something personal</small></p></div>
-      <div><span>↗</span><p><strong>Support creative livelihoods</strong><small>Buy directly from makers</small></p></div>
-    </section>
-
-    <section class="section shop-section" id="shop">
-      <div class="section-heading">
-        <div><span class="eyebrow">THE MARKETPLACE</span><h2>Find your next <em>favourite.</em></h2><p>Original work, thoughtful details, and stories worth sharing.</p></div>
-        <span class="item-count" id="result-count">6 pieces to discover</span>
-      </div>
-      <div class="shop-tools">
-        <label class="search-box"><span>⌕</span><input type="search" id="product-search" placeholder="Search paintings, jewellery, pottery..." aria-label="Search products"></label>
-        <div class="category-filters" id="category-filters">
-          <button class="filter active" data-category="All">All art</button>
-          <button class="filter" data-category="Paintings">Paintings</button>
-          <button class="filter" data-category="Jewellery">Jewellery</button>
-          <button class="filter" data-category="Home & décor">Home & décor</button>
-          <button class="filter" data-category="Textiles">Textiles</button>
-        </div>
-      </div>
-      <div class="product-grid" id="product-grid" aria-live="polite"></div>
-      <p class="empty-state hidden" id="empty-state">No artwork matches that search. Try another word or category.</p>
-    </section>
-
-
-    <section class="artist-studio section" id="artist-studio">
-      <div class="section-heading">
-        <div><span class="eyebrow">FOR ARTISTS & MAKERS</span><h2>Put your work <em>out there.</em></h2><p>Artists can publish their own work to the marketplace using this form.</p></div>
-        <span class="item-count">ARTIST STUDIO</span>
-      </div>
-      <div class="studio-layout">
-        <div class="studio-copy">
-          <div class="studio-symbol">✳</div>
-          <h3>Your creations belong here.</h3>
-          <p>Upload a photo, add a description, set your price in Kenyan shillings, and publish your artwork. Your listing will appear in Explore Art.</p>
-          <ul class="check-list"><li>✳ Add your own artwork</li><li>✳ Choose a category and price</li><li>✳ Remove listings from this browser</li></ul>
-          <p class="demo-note">Important: this is a front-end demo. Listings are saved only in this browser and are not shared with other visitors. A real public marketplace needs artist accounts and a backend database.</p>
-        </div>
-        <form class="upload-form" id="product-form">
-          <h3>Publish a piece</h3>
-          <label>Artwork title<input name="title" required maxlength="80" placeholder="e.g. Sunset over the savannah"></label>
-          <div class="form-two-col">
-            <label>Price (KSh)<input name="price" type="number" min="1" step="1" required placeholder="2500"></label>
-            <label>Category<select name="category" required><option value="">Choose a category</option><option>Paintings</option><option>Jewellery</option><option>Home & décor</option><option>Textiles</option><option>Pottery</option><option>Other</option></select></label>
+    </header>
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-copy">
+          <span class="eyebrow">
+            <span class="eyebrow-dot"> </span>
+            THE HOME OF KENYAN CREATIVITY
+          </span>
+          <h1>
+            Art with a story.
+            <br />
+            <em> Made in Kenya. </em>
+          </h1>
+          <p>
+            Find one-of-a-kind handmade pieces, meet the makers behind them, and
+            bring a little Kenyan creativity into your world.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-red" href="#shop">
+              Explore the collection
+              <span> &nearrow; </span>
+            </a>
+            <button class="button button-outline" id="hero-seller">
+              I'm an artisan
+            </button>
           </div>
-          <label>Artist / shop name<input name="maker" required maxlength="70" placeholder="Your artist name"></label>
-          <label>Town or county<input name="location" required maxlength="70" placeholder="e.g. Kisumu, Kenya"></label>
-          <label>Photo of your artwork<input id="product-image" name="image" type="file" accept="image/*" required><small class="field-help">Choose a photo from your device. For this demo, use an image smaller than 1.5 MB.</small></label>
-          <label>About this piece<textarea name="description" rows="4" maxlength="500" required placeholder="Describe the materials, inspiration, size, or story behind your work."></textarea></label>
-          <button class="button button-green full" type="submit">Publish artwork <span>↗</span></button>
-          <p class="form-message" id="product-form-message" aria-live="polite"></p>
-        </form>
+          <div class="hero-proof">
+            <div class="avatar-stack">
+              <span> J </span>
+              <span> A </span>
+              <span> M </span>
+              <span> + </span>
+            </div>
+            <p>
+              <strong> Local hands. Original art. </strong>
+              <br />
+              <small> Every piece has a story to tell. </small>
+            </p>
+          </div>
+        </div>
+        <div aria-label="Artisan-inspired decorative artwork" class="hero-art">
+          <div class="hero-photo hero-photo-main">
+            <img
+              alt="Colourful abstract painting"
+              src="https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&amp;fit=crop&amp;w=1000&amp;q=85"
+            />
+            <span class="photo-label"> ART THAT SPEAKS </span>
+          </div>
+          <div class="hero-photo hero-photo-small">
+            <img
+              alt="Handcrafted ceramic pottery"
+              src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&amp;fit=crop&amp;w=600&amp;q=85"
+            />
+          </div>
+          <div class="floating-note">
+            <span> ✳ </span>
+            <div>
+              <strong> Crafted with care </strong>
+              <small> By Kenyan makers </small>
+            </div>
+          </div>
+          <div class="hero-stamp">
+            LOCAL
+            <br />
+            <b> LOVE </b>
+            <br />
+            ✳
+          </div>
+        </div>
+        <div class="hero-bottom-line">
+          <span> 01 &mdash; DISCOVER </span>
+          <span> 02 &mdash; CONNECT </span>
+          <span> 03 &mdash; COLLECT </span>
+        </div>
+      </section>
+      <section class="trust-strip">
+        <div>
+          <span> ✳ </span>
+          <p>
+            <strong> Made by local hands </strong>
+            <small> Celebrate Kenyan talent </small>
+          </p>
+        </div>
+        <div>
+          <span> ♡ </span>
+          <p>
+            <strong> Every piece is unique </strong>
+            <small> Find something personal </small>
+          </p>
+        </div>
+        <div>
+          <span> &nearrow; </span>
+          <p>
+            <strong> Support creative livelihoods </strong>
+            <small> Buy directly from makers </small>
+          </p>
+        </div>
+      </section>
+      <section class="section shop-section" id="shop">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow"> THE MARKETPLACE </span>
+            <h2>
+              Find your next
+              <em> favourite. </em>
+            </h2>
+            <p>Original work, thoughtful details, and stories worth sharing.</p>
+          </div>
+          <span class="item-count" id="result-count">
+            6 pieces to discover
+          </span>
+        </div>
+        <div class="shop-tools">
+          <label class="search-box">
+            <span> &telrec; </span>
+            <input
+              aria-label="Search products"
+              id="product-search"
+              placeholder="Search paintings, jewellery, pottery..."
+              type="search"
+            />
+          </label>
+          <div class="category-filters" id="category-filters">
+            <button class="filter active" data-category="All">All art</button>
+            <button class="filter" data-category="Paintings">Paintings</button>
+            <button class="filter" data-category="Jewellery">Jewellery</button>
+            <button class="filter" data-category="Home &amp; d&eacute;cor">
+              Home &amp; d&eacute;cor
+            </button>
+            <button class="filter" data-category="Textiles">Textiles</button>
+          </div>
+        </div>
+        <div aria-live="polite" class="product-grid" id="product-grid"></div>
+        <p class="empty-state hidden" id="empty-state">
+          No artwork matches that search. Try another word or category.
+        </p>
+      </section>
+      <section class="artist-studio section" id="artist-studio">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow"> FOR ARTISTS &amp; MAKERS </span>
+            <h2>
+              Put your work
+              <em> out there. </em>
+            </h2>
+            <p>
+              Artists can publish their own work to the marketplace using this
+              form.
+            </p>
+          </div>
+          <span class="item-count"> ARTIST STUDIO </span>
+        </div>
+        <div class="studio-layout">
+          <div class="studio-copy">
+            <div class="studio-symbol">✳</div>
+            <h3>Your creations belong here.</h3>
+            <p>
+              Upload a photo, add a description, set your price in Kenyan
+              shillings, and publish your artwork. Your listing will appear in
+              Explore Art.
+            </p>
+            <ul class="check-list">
+              <li>✳ Add your own artwork</li>
+              <li>✳ Choose a category and price</li>
+              <li>✳ Remove listings from this browser</li>
+            </ul>
+            <p class="demo-note">
+              Important: this is a front-end demo. Listings are saved only in
+              this browser and are not shared with other visitors. A real public
+              marketplace needs artist accounts and a backend database.
+            </p>
+          </div>
+          <form class="upload-form" id="product-form">
+            <h3>Publish a piece</h3>
+            <label>
+              Artwork title
+              <input
+                maxlength="80"
+                name="title"
+                placeholder="e.g. Sunset over the savannah"
+                required=""
+              />
+            </label>
+            <div class="form-two-col">
+              <label>
+                Price (KSh)
+                <input
+                  min="1"
+                  name="price"
+                  placeholder="2500"
+                  required=""
+                  step="1"
+                  type="number"
+                />
+              </label>
+              <label>
+                Category
+                <select name="category" required="">
+                  <option value="">Choose a category</option>
+                  <option>Paintings</option>
+                  <option>Jewellery</option>
+                  <option>Home &amp; d&eacute;cor</option>
+                  <option>Textiles</option>
+                  <option>Pottery</option>
+                  <option>Other</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Artist / shop name
+              <input
+                maxlength="70"
+                name="maker"
+                placeholder="Your artist name"
+                required=""
+              />
+            </label>
+            <label>
+              Town or county
+              <input
+                maxlength="70"
+                name="location"
+                placeholder="e.g. Kisumu, Kenya"
+                required=""
+              />
+            </label>
+            <label>
+              Photo of your artwork
+              <input
+                accept="image/*"
+                id="product-image"
+                name="image"
+                required=""
+                type="file"
+              />
+              <small class="field-help">
+                Choose a photo from your device. For this demo, use an image
+                smaller than 1.5 MB.
+              </small>
+            </label>
+            <label>
+              About this piece
+              <textarea
+                maxlength="500"
+                name="description"
+                placeholder="Describe the materials, inspiration, size, or story behind your work."
+                required=""
+                rows="4"
+              ></textarea>
+            </label>
+            <button class="button button-green full" type="submit">
+              Publish artwork
+              <span> &nearrow; </span>
+            </button>
+            <p
+              aria-live="polite"
+              class="form-message"
+              id="product-form-message"
+            ></p>
+          </form>
+        </div>
+        <div class="my-listings-heading">
+          <h3>Your listings on this browser</h3>
+          <span id="my-listings-count"> 0 listings </span>
+        </div>
+        <div class="my-listings" id="my-listings"></div>
+      </section>
+      <section class="category-section" id="categories">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow"> SHOP YOUR STYLE </span>
+            <h2>
+              Made for the
+              <em> way you live. </em>
+            </h2>
+          </div>
+        </div>
+        <div class="category-grid">
+          <button
+            class="category-card category-paint"
+            data-jump-category="Paintings"
+          >
+            <span> 01 / ART </span>
+            <strong> Paintings &amp; prints </strong>
+            <small> Colour for your walls &nearrow; </small>
+          </button>
+          <button
+            class="category-card category-beads"
+            data-jump-category="Jewellery"
+          >
+            <span> 02 / DETAIL </span>
+            <strong> Beads &amp; jewellery </strong>
+            <small> Little things, big meaning &nearrow; </small>
+          </button>
+          <button
+            class="category-card category-home"
+            data-jump-category="Home &amp; d&eacute;cor"
+          >
+            <span> 03 / HOME </span>
+            <strong> Home &amp; d&eacute;cor </strong>
+            <small> Objects with character &nearrow; </small>
+          </button>
+          <button
+            class="category-card category-textile"
+            data-jump-category="Textiles"
+          >
+            <span> 04 / CRAFT </span>
+            <strong> Textiles &amp; woven art </strong>
+            <small> Made to be lived in &nearrow; </small>
+          </button>
+        </div>
+      </section>
+      <section class="artisan-section" id="artisans">
+        <div class="artisan-art">
+          <img
+            alt="Artist working in a creative studio"
+            src="https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&amp;fit=crop&amp;w=900&amp;q=85"
+          />
+          <span class="artisan-badge">
+            CREATIVITY
+            <br />
+            GROWS HERE ✳
+          </span>
+        </div>
+        <div class="artisan-copy">
+          <span class="eyebrow"> BEHIND EVERY PIECE </span>
+          <h2>
+            Meet the hands.
+            <br />
+            <em> Hear the story. </em>
+          </h2>
+          <p>
+            Kenyan Artisans is a space for local makers to share their work with
+            more people. From bold paintings to beadwork and woven treasures,
+            every creation carries skill, culture, and imagination.
+          </p>
+          <ul class="check-list">
+            <li>✳ Discover independent Kenyan makers</li>
+            <li>✳ Find unique, handmade pieces</li>
+            <li>✳ Help local creativity thrive</li>
+          </ul>
+          <button class="button button-green" id="artisan-seller">
+            Showcase your work
+            <span> &nearrow; </span>
+          </button>
+        </div>
+      </section>
+      <section class="seller-cta">
+        <div class="cta-pattern">✳</div>
+        <div>
+          <span class="eyebrow light"> YOUR CRAFT DESERVES TO BE SEEN </span>
+          <h2>
+            Make beautiful things?
+            <br />
+            <em> There's a place for you here. </em>
+          </h2>
+          <p>
+            Bring your art to a community that values the people and stories
+            behind every creation.
+          </p>
+        </div>
+        <button class="button button-white" id="cta-seller">
+          Become a seller
+          <span> &nearrow; </span>
+        </button>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="#home">
+        <span class="brand-mark"> KA </span>
+        <span>
+          Kenyan
+          <strong> Artisans </strong>
+          <small> MADE WITH HEART </small>
+        </span>
+      </a>
+      <p>Celebrating the people who make Kenya creative.</p>
+      <div class="footer-links">
+        <a href="#shop"> Explore art </a>
+        <a href="#artisans"> Our artisans </a>
+        <a href="#seller"> Sell with us </a>
       </div>
-      <div class="my-listings-heading"><h3>Your listings on this browser</h3><span id="my-listings-count">0 listings</span></div>
-      <div class="my-listings" id="my-listings"></div>
-    </section>
-
-    <section class="category-section" id="categories">
-      <div class="section-heading">
-        <div><span class="eyebrow">SHOP YOUR STYLE</span><h2>Made for the <em>way you live.</em></h2></div>
+      <small>
+        &copy;
+        <span id="year"> </span>
+        Kenyan Artisans. Made with care in Kenya. 🇰🇪
+      </small>
+    </footer>
+    <div
+      aria-labelledby="modal-title"
+      aria-modal="true"
+      class="modal-backdrop hidden"
+      id="product-modal"
+      role="dialog"
+    >
+      <div class="modal product-modal">
+        <button aria-label="Close" class="modal-close" data-close-modal="">
+          &times;
+        </button>
+        <img alt="" id="modal-image" src="" />
+        <div class="modal-content">
+          <span class="eyebrow" id="modal-category"> </span>
+          <h2 id="modal-title"></h2>
+          <p id="modal-description"></p>
+          <div class="modal-maker" id="modal-maker"></div>
+          <strong class="modal-price" id="modal-price"> </strong>
+          <button class="button button-red full" id="modal-add">
+            Add to cart
+          </button>
+        </div>
       </div>
-      <div class="category-grid">
-        <button class="category-card category-paint" data-jump-category="Paintings"><span>01 / ART</span><strong>Paintings & prints</strong><small>Colour for your walls ↗</small></button>
-        <button class="category-card category-beads" data-jump-category="Jewellery"><span>02 / DETAIL</span><strong>Beads & jewellery</strong><small>Little things, big meaning ↗</small></button>
-        <button class="category-card category-home" data-jump-category="Home & décor"><span>03 / HOME</span><strong>Home & décor</strong><small>Objects with character ↗</small></button>
-        <button class="category-card category-textile" data-jump-category="Textiles"><span>04 / CRAFT</span><strong>Textiles & woven art</strong><small>Made to be lived in ↗</small></button>
-      </div>
-    </section>
-
-    <section class="artisan-section" id="artisans">
-      <div class="artisan-art">
-        <img src="https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=900&q=85" alt="Artist working in a creative studio">
-        <span class="artisan-badge">CREATIVITY<br>GROWS HERE ✳</span>
-      </div>
-      <div class="artisan-copy">
-        <span class="eyebrow">BEHIND EVERY PIECE</span>
-        <h2>Meet the hands.<br><em>Hear the story.</em></h2>
-        <p>Kenyan Artisans is a space for local makers to share their work with more people. From bold paintings to beadwork and woven treasures, every creation carries skill, culture, and imagination.</p>
-        <ul class="check-list"><li>✳ Discover independent Kenyan makers</li><li>✳ Find unique, handmade pieces</li><li>✳ Help local creativity thrive</li></ul>
-        <button class="button button-green" id="artisan-seller">Showcase your work <span>↗</span></button>
-      </div>
-    </section>
-
-    <section class="seller-cta">
-      <div class="cta-pattern">✳</div>
-      <div><span class="eyebrow light">YOUR CRAFT DESERVES TO BE SEEN</span><h2>Make beautiful things?<br><em>There's a place for you here.</em></h2><p>Bring your art to a community that values the people and stories behind every creation.</p></div>
-      <button class="button button-white" id="cta-seller">Become a seller <span>↗</span></button>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <a class="brand footer-brand" href="#home"><span class="brand-mark">KA</span><span>Kenyan <strong>Artisans</strong><small>MADE WITH HEART</small></span></a>
-    <p>Celebrating the people who make Kenya creative.</p>
-    <div class="footer-links"><a href="#shop">Explore art</a><a href="#artisans">Our artisans</a><a href="#seller">Sell with us</a></div>
-    <small>© <span id="year"></span> Kenyan Artisans. Made with care in Kenya. 🇰🇪</small>
-  </footer>
-
-  <div class="modal-backdrop hidden" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal product-modal">
-      <button class="modal-close" data-close-modal aria-label="Close">×</button>
-      <img id="modal-image" src="" alt="">
-      <div class="modal-content"><span class="eyebrow" id="modal-category"></span><h2 id="modal-title"></h2><p id="modal-description"></p><div class="modal-maker" id="modal-maker"></div><strong class="modal-price" id="modal-price"></strong><button class="button button-red full" id="modal-add">Add to cart</button></div>
     </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="seller-modal" role="dialog" aria-modal="true" aria-labelledby="seller-title">
-    <div class="modal seller-modal">
-      <button class="modal-close" data-close-modal aria-label="Close">×</button>
-      <span class="eyebrow">FOR KENYAN MAKERS</span>
-      <h2 id="seller-title">Your work belongs <em>here.</em></h2>
-      <p>Use the Artist Studio to upload your artwork, set your price, and publish it to the marketplace.</p>
-      <button class="button button-green full" id="go-to-studio">Go to Artist Studio <span>↗</span></button>
-      <small class="demo-note">Demo listings are stored in this browser only.</small>
+    <div
+      aria-labelledby="cart-title"
+      aria-modal="true"
+      class="modal-backdrop hidden"
+      id="cart-modal"
+      role="dialog"
+    >
+      <div class="modal cart-modal">
+        <button aria-label="Close" class="modal-close" data-close-modal="">
+          &times;
+        </button>
+        <span class="eyebrow"> YOUR FINDS </span>
+        <h2 id="cart-title">
+          Your art
+          <em> basket. </em>
+        </h2>
+        <div id="cart-items"></div>
+        <div class="cart-total">
+          <span> Subtotal </span>
+          <strong id="cart-total"> KSh 0 </strong>
+        </div>
+        <p class="demo-note">
+          Demo checkout: this prototype does not process payments.
+        </p>
+        <button class="button button-green full" id="checkout-button">
+          Continue to checkout
+        </button>
+      </div>
     </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
-  <div class="modal cart-modal">
-    <button class="modal-close" data-close-modal aria-label="Close basket">×</button>
-    <span class="eyebrow">YOUR BASKET</span>
-    <h2 id="cart-title">Ready when you are.</h2>
-    <div class="cart-items" id="cart-items"></div>
-    <div class="cart-total-row"><span>Total</span><strong id="cart-total">KSh 0</strong></div>
-    <button class="button button-red full" id="checkout-button" type="button">Checkout</button>
-  </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
-  <div class="modal checkout-modal">
-    <button type="button" class="modal-close" data-close-modal aria-label="Close checkout">×</button>
-    <span class="eyebrow">ALMOST THERE</span>
-    <h2 id="checkout-title">Send your order</h2>
-    <ul class="checkout-summary" id="checkout-summary"></ul>
-    <div class="cart-total-row"><span>Total</span><strong id="checkout-total">KSh 0</strong></div>
-    <form id="checkout-form" class="checkout-form" novalidate>
-      <label>Your name<input name="name" required maxlength="60" autocomplete="name" placeholder="e.g. Amina Wanjiru"></label>
-      <label>Phone number<input name="phone" type="tel" required autocomplete="tel" placeholder="07XX XXX XXX"></label>
-      <label>Delivery town<input name="town" required maxlength="60" placeholder="e.g. Kisumu"></label>
-      <label>Note (optional)<textarea name="note" rows="2" maxlength="200" placeholder="Anything the artist should know?"></textarea></label>
-      <button class="button button-green full" type="submit">Send order on WhatsApp <span>↗</span></button>
-      <p class="form-message" id="checkout-message" aria-live="polite"></p>
-      <small class="demo-note">This opens WhatsApp with your order. Payment is arranged directly with the artist.</small>
-     </form>
+    <div
+      aria-labelledby="seller-title"
+      aria-modal="true"
+      class="modal-backdrop hidden"
+      id="seller-modal"
+      role="dialog"
+    >
+      <div class="modal seller-modal">
+        <button aria-label="Close" class="modal-close" data-close-modal="">
+          &times;
+        </button>
+        <span class="eyebrow"> FOR KENYAN MAKERS </span>
+        <h2 id="seller-title">
+          Your work belongs
+          <em> here. </em>
+        </h2>
+        <p>
+          Use the Artist Studio to upload your artwork, set your price, and
+          publish it to the marketplace.
+        </p>
+        <button class="button button-green full" id="go-to-studio">
+          Go to Artist Studio
+          <span> &nearrow; </span>
+        </button>
+        <small class="demo-note">
+          Demo listings are stored in this browser only.
+        </small>
+      </div>
     </div>
-   </div>
-
-  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-    <div class="modal">
-     <button type="button" class="modal-close" data-close-modal onclick="closeModals()" aria-label="Close settings">×</button>
-      <h2 id="settings-title">Settings</h2>
-      <p>Personalize your Kenyan Artisans experience.</p>
-      <label for="theme-select">Appearance</label>
-      <select id="theme-select">
-        <option value="light">Light mode</option>
-        <option value="dark">Dark mode</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-</body>
+    <div aria-live="polite" class="toast" id="toast" role="status"></div>
+  </body>
 </html>
 
   
