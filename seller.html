@@ -1,947 +1,299 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Seller Studio | Kenyan Artisans</title>
-
-    <link rel="stylesheet" href="style.css">
-
-    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script defer src="auth.js"></script>
-
-    <style>
-        :root {
-            --ink: #20231d;
-            --green: #245b3d;
-            --red: #a52a2a;
-            --cream: #f7f3e9;
-            --paper: #fffdf8;
-            --muted: #77766d;
-            --border: #e7e0d2;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            background: var(--cream);
-            color: var(--ink);
-            font-family: Georgia, "Times New Roman", serif;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
-
-        button,
-        a {
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .studio {
-            min-height: 100vh;
-            display: flex;
-        }
-
-        .sidebar {
-            width: 245px;
-            flex-shrink: 0;
-            background: var(--ink);
-            color: white;
-            padding: 30px 22px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 50px;
-        }
-
-        .brand-mark {
-            width: 44px;
-            height: 44px;
-            display: grid;
-            place-items: center;
-            border: 1px solid #b89a62;
-            color: #e7c88c;
-            font-size: 23px;
-            transform: rotate(45deg);
-        }
-
-        .brand-mark span {
-            transform: rotate(-45deg);
-        }
-
-        .brand-name {
-            font-size: 18px;
-            line-height: 1.2;
-        }
-
-        .brand-name small {
-            display: block;
-            color: #c9bda7;
-            font-family: Arial, sans-serif;
-            font-size: 9px;
-            letter-spacing: 2px;
-            margin-top: 6px;
-        }
-
-        .nav-label {
-            color: #aaa69b;
-            font: 10px Arial, sans-serif;
-            letter-spacing: 2px;
-            margin: 0 0 14px 12px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            padding: 14px 12px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            color: #dedbd2;
-            font: 13px Arial, sans-serif;
-            transition: background 0.2s;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: #354335;
-            color: #fff;
-        }
-
-        .nav-icon {
-            width: 20px;
-            text-align: center;
-            font-size: 18px;
-        }
-
-        .sidebar-bottom {
-            margin-top: auto;
-            padding-top: 30px;
-        }
-
-        .sidebar-note {
-            border-top: 1px solid #46463d;
-            padding-top: 22px;
-            color: #c9bda7;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .sidebar-note span {
-            display: block;
-            color: #d6b678;
-            font-size: 20px;
-            margin-bottom: 8px;
-        }
-
-        .main-area {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .topbar {
-            min-height: 76px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 18px 5%;
-            background: var(--paper);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .topbar-label {
-            font: 10px Arial, sans-serif;
-            letter-spacing: 2px;
-            color: var(--muted);
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            font: 12px Arial, sans-serif;
-        }
-
-        .market-link {
-            color: var(--green);
-            font-weight: bold;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            display: grid;
-            place-items: center;
-            border-radius: 50%;
-            background: #e8deca;
-            color: var(--green);
-            font-weight: bold;
-        }
-
-        .content {
-            max-width: 1500px;
-            margin: 0 auto;
-            padding: 42px 5% 60px;
-        }
-
-        .welcome {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 24px;
-            margin-bottom: 38px;
-        }
-
-        .eyebrow {
-            color: var(--red);
-            font: bold 10px Arial, sans-serif;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .welcome h1 {
-            margin: 12px 0;
-            font-size: clamp(29px, 3.5vw, 44px);
-            font-weight: normal;
-            line-height: 1.15;
-        }
-
-        .welcome p {
-            color: var(--muted);
-            font: 14px/1.8 Arial, sans-serif;
-            margin: 0;
-        }
-
-        .primary-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            border: none;
-            border-radius: 3px;
-            padding: 15px 22px;
-            background: var(--green);
-            color: white;
-            cursor: pointer;
-            font: bold 12px Arial, sans-serif;
-            white-space: nowrap;
-            transition: background 0.2s;
-        }
-
-        .primary-btn:hover {
-            background: #183e2a;
-        }
-
-        .gallery-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            padding-bottom: 18px;
-            margin-bottom: 24px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .gallery-heading h2 {
-            margin: 0;
-            font-size: 25px;
-            font-weight: normal;
-        }
-
-        .gallery-heading p {
-            margin: 7px 0 0;
-            color: var(--muted);
-            font: 12px Arial, sans-serif;
-        }
-
-        .art-count {
-            color: var(--muted);
-            font: 11px Arial, sans-serif;
-        }
-
-        .art-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 28px 22px;
-        }
-
-        .art-card {
-            min-width: 0;
-        }
-
-        .art-image {
-            position: relative;
-            aspect-ratio: 4 / 4.5;
-            overflow: hidden;
-            background: #e9e0ce;
-        }
-
-        .art-image img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.4s;
-        }
-
-        .art-card:hover .art-image img {
-            transform: scale(1.04);
-        }
-
-        .art-image-placeholder {
-            height: 100%;
-            display: grid;
-            place-items: center;
-            color: #877a64;
-            font-size: 42px;
-        }
-
-        .art-details {
-            padding: 15px 0 0;
-        }
-
-        .art-details h3 {
-            margin: 0 0 8px;
-            font-size: 18px;
-            font-weight: normal;
-        }
-
-        .art-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            color: var(--muted);
-            font: 11px Arial, sans-serif;
-        }
-
-        .art-price {
-            color: var(--green);
-            font-weight: bold;
-            font-size: 13px;
-        }
-
-        .art-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 13px;
-            font: 11px Arial, sans-serif;
-        }
-
-        .art-actions button {
-            padding: 0;
-            border: none;
-            background: none;
-            color: var(--green);
-            cursor: pointer;
-        }
-
-        .art-actions .remove-btn {
-            color: var(--red);
-        }
-
-        .empty-state {
-            padding: 65px 20px;
-            text-align: center;
-            border: 1px dashed #cfc3ad;
-            background: rgba(255, 253, 248, 0.6);
-        }
-
-        .empty-symbol {
-            color: #b79b69;
-            font-size: 42px;
-        }
-
-        .empty-state h3 {
-            margin: 15px 0 8px;
-            font-size: 23px;
-            font-weight: normal;
-        }
-
-        .empty-state p {
-            max-width: 380px;
-            margin: 0 auto 22px;
-            color: var(--muted);
-            font: 13px/1.8 Arial, sans-serif;
-        }
-
-        .upload-panel {
-            margin: 35px 0;
-            padding: 28px;
-            background: var(--paper);
-            border: 1px solid var(--border);
-        }
-
-        .upload-panel[hidden] {
-            display: none;
-        }
-
-        .upload-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .upload-title h2 {
-            margin: 0;
-            font-size: 25px;
-            font-weight: normal;
-        }
-
-        .close-btn {
-            border: 1px solid var(--border);
-            background: transparent;
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-
-        .upload-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            font: 12px Arial, sans-serif;
-        }
-
-        .field.full {
-            grid-column: 1 / -1;
-        }
-
-        .field input,
-        .field textarea,
-        .field select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            background: white;
-            color: var(--ink);
-            border-radius: 2px;
-        }
-
-        .field textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-note {
-            grid-column: 1 / -1;
-            margin: 0;
-            color: var(--muted);
-            font: 12px/1.7 Arial, sans-serif;
-        }
-
-        .form-message {
-            grid-column: 1 / -1;
-            color: var(--red);
-            font: 13px/1.6 Arial, sans-serif;
-        }
-
-        .footer {
-            padding: 22px 5%;
-            border-top: 1px solid var(--border);
-            color: var(--muted);
-            font: 11px Arial, sans-serif;
-            text-align: center;
-        }
-
-        @media (max-width: 1000px) {
-            .sidebar {
-                width: 205px;
-                padding: 25px 15px;
-            }
-
-            .art-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 650px) {
-            .studio {
-                display: block;
-            }
-
-            .sidebar {
-                width: 100%;
-                padding: 16px 18px;
-            }
-
-            .brand {
-                margin-bottom: 20px;
-            }
-
-            .sidebar nav {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 5px;
-            }
-
-            .nav-label,
-            .sidebar-bottom {
-                display: none;
-            }
-
-            .nav-link {
-                padding: 10px;
-                margin: 0;
-                font-size: 12px;
-            }
-
-            .nav-icon {
-                width: auto;
-            }
-
-            .topbar {
-                padding: 15px 20px;
-            }
-
-            .content {
-                padding: 30px 20px 45px;
-            }
-
-            .welcome {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .welcome h1 {
-                font-size: 32px;
-            }
-
-            .art-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 24px 13px;
-            }
-
-            .art-details h3 {
-                font-size: 15px;
-            }
-
-            .art-meta {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .upload-panel {
-                padding: 20px;
-            }
-
-            .upload-form {
-                grid-template-columns: 1fr;
-            }
-
-            .field.full,
-            .form-note,
-            .form-message {
-                grid-column: auto;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage and publish your handmade artwork on Kenyan Artisans.">
+  <title>Seller Dashboard | Kenyan Artisans</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="auth.js"></script>
+  <style>
+    :root{--ink:#20231d;--green:#245b3d;--red:#a52a2a;--cream:#f7f3e9;--paper:#fffdf8;--muted:#77766d;--border:#e7e0d2}
+    *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Georgia,"Times New Roman",serif}a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}button,a{-webkit-tap-highlight-color:transparent}
+    .studio{min-height:100vh;display:flex}.sidebar{width:245px;flex-shrink:0;background:var(--ink);color:#fff;padding:30px 22px;display:flex;flex-direction:column}.brand{display:flex;align-items:center;gap:12px;margin-bottom:50px}.brand-mark{width:44px;height:44px;display:grid;place-items:center;border:1px solid #b89a62;color:#e7c88c;font-size:23px;transform:rotate(45deg)}.brand-mark span{transform:rotate(-45deg)}.brand-name{font-size:18px;line-height:1.2}.brand-name small{display:block;color:#c9bda7;font:9px Arial,sans-serif;letter-spacing:2px;margin-top:6px}.nav-label{color:#aaa69b;font:10px Arial,sans-serif;letter-spacing:2px;margin:0 0 14px 12px}.nav-link{display:flex;align-items:center;gap:13px;padding:14px 12px;margin-bottom:5px;border-radius:5px;color:#dedbd2;font:13px Arial,sans-serif;transition:background .2s}.nav-link:hover,.nav-link.active{background:#354335;color:#fff}.nav-icon{width:20px;text-align:center;font-size:18px}.sidebar-bottom{margin-top:auto;padding-top:30px}.sidebar-note{border-top:1px solid #46463d;padding-top:22px;color:#c9bda7;font-size:13px;line-height:1.8}.sidebar-note span{display:block;color:#d6b678;font-size:20px;margin-bottom:8px}
+    .main-area{min-width:0;flex:1}.topbar{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:18px 5%;background:var(--paper);border-bottom:1px solid var(--border)}.topbar-label{font:10px Arial,sans-serif;letter-spacing:2px;color:var(--muted)}.topbar-right{display:flex;align-items:center;gap:18px;font:12px Arial,sans-serif}.market-link{color:var(--green);font-weight:bold}.avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#e8deca;color:var(--green);font-weight:bold}
+    .content{max-width:1500px;margin:0 auto;padding:42px 5% 60px}.welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:38px}.eyebrow{color:var(--red);font:bold 10px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase}.welcome h1{margin:12px 0;font-size:clamp(29px,3.5vw,44px);font-weight:normal;line-height:1.15}.welcome p{color:var(--muted);font:14px/1.8 Arial,sans-serif;margin:0}.primary-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:none;border-radius:3px;padding:15px 22px;background:var(--green);color:white;cursor:pointer;font:bold 12px Arial,sans-serif;white-space:nowrap;transition:background .2s}.primary-btn:hover{background:#183e2a}
+    .gallery-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-bottom:18px;margin-bottom:24px;border-bottom:1px solid var(--border)}.gallery-heading h2{margin:0;font-size:25px;font-weight:normal}.gallery-heading p{margin:7px 0 0;color:var(--muted);font:12px Arial,sans-serif}.art-count{color:var(--muted);font:11px Arial,sans-serif}.art-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 22px}.art-card{min-width:0}.art-image{position:relative;aspect-ratio:4/4.5;overflow:hidden;background:#e9e0ce}.art-image img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s}.art-card:hover .art-image img{transform:scale(1.04)}.art-details{padding:15px 0 0}.art-details h3{margin:0 0 8px;font-size:18px;font-weight:normal}.art-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--muted);font:11px Arial,sans-serif}.art-price{color:var(--green);font-weight:bold;font-size:13px}.art-description{color:var(--muted);font:12px/1.7 Arial,sans-serif}.art-actions{display:flex;gap:15px;margin-top:13px;font:11px Arial,sans-serif}.art-actions button{padding:0;border:none;background:none;color:var(--green);cursor:pointer}.art-actions .remove-btn{color:var(--red)}
+    .empty-state{padding:65px 20px;text-align:center;border:1px dashed #cfc3ad;background:rgba(255,253,248,.6)}.empty-symbol{color:#b79b69;font-size:42px}.empty-state h3{margin:15px 0 8px;font-size:23px;font-weight:normal}.empty-state p{max-width:380px;margin:0 auto 22px;color:var(--muted);font:13px/1.8 Arial,sans-serif}.upload-panel{margin:35px 0;padding:28px;background:var(--paper);border:1px solid var(--border)}.upload-panel[hidden]{display:none}.upload-title{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}.upload-title h2{margin:0;font-size:25px;font-weight:normal}.close-btn{border:1px solid var(--border);background:transparent;padding:8px 12px;cursor:pointer}.upload-form{display:grid;grid-template-columns:1fr 1fr;gap:20px}.field{display:flex;flex-direction:column;gap:8px;font:12px Arial,sans-serif}.field.full{grid-column:1/-1}.field input,.field textarea,.field select{width:100%;padding:12px;border:1px solid var(--border);background:#fff;color:var(--ink);border-radius:2px}.field textarea{min-height:100px;resize:vertical}.form-note{grid-column:1/-1;margin:0;color:var(--muted);font:12px/1.7 Arial,sans-serif}.form-message{grid-column:1/-1;color:var(--red);font:13px/1.6 Arial,sans-serif;margin:0}.form-message.success{color:var(--green)}.footer{padding:22px 5%;border-top:1px solid var(--border);color:var(--muted);font:11px Arial,sans-serif;text-align:center}
+    @media(max-width:1000px){.sidebar{width:205px;padding:25px 15px}.art-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:650px){.studio{display:block}.sidebar{width:100%;padding:16px 18px}.brand{margin-bottom:20px}.sidebar nav{display:flex;flex-wrap:wrap;gap:5px}.nav-label,.sidebar-bottom{display:none}.nav-link{padding:10px;margin:0;font-size:12px}.nav-icon{width:auto}.topbar{padding:15px 20px}.content{padding:30px 20px 45px}.welcome{align-items:flex-start;flex-direction:column}.welcome h1{font-size:32px}.art-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 13px}.art-details h3{font-size:15px}.art-meta{align-items:flex-start;flex-direction:column}.upload-panel{padding:20px}.upload-form{grid-template-columns:1fr}.field.full,.form-note,.form-message{grid-column:auto}}
+  </style>
 </head>
-
 <body>
-    <div class="studio">
-
-        <aside class="sidebar">
-            <a class="brand" href="seller.html">
-                <div class="brand-mark"><span>K</span></div>
-                <div class="brand-name">
-                    Kenyan Artisans
-                    <small>SELLER STUDIO</small>
-                </div>
-            </a>
-
-            <p class="nav-label">WORKSPACE</p>
-
-            <nav>
-                <a class="nav-link active" href="#overview">
-                    <span class="nav-icon">⌂</span>
-                    Overview
-                </a>
-
-                <a class="nav-link" href="#my-artwork">
-                    <span class="nav-icon">◇</span>
-                    My Artwork
-                </a>
-
-                <a class="nav-link" href="#orders">
-                    <span class="nav-icon">▤</span>
-                    Orders
-                </a>
-
-                <a class="nav-link" href="#profile">
-                    <span class="nav-icon">○</span>
-                    My Profile
-                </a>
-            </nav>
-
-            <div class="sidebar-bottom">
-                <div class="sidebar-note">
-                    <span>✳</span>
-                    Every piece tells a story.
-                    <br>
-                    Share yours with the world.
-                </div>
-            </div>
-        </aside>
-
-        <div class="main-area">
-
-            <header class="topbar">
-                <span class="topbar-label">YOUR CREATIVE SPACE</span>
-
-                <div class="topbar-right">
-                    <a class="market-link" href="index.html">
-                        Visit Marketplace ↗
-                    </a>
-                    <div class="avatar">K</div>
-                </div>
-            </header>
-
-            <main class="content" id="overview">
-
-                <section class="welcome">
-                    <div>
-                        <div class="eyebrow">Made with purpose. Crafted with soul.</div>
-                        <h1>Welcome to your studio.</h1>
-                        <p>
-                            Your creativity deserves a place to shine.
-                            Manage your artwork and share your craft.
-                        </p>
-                    </div>
-
-                    <button class="primary-btn" id="open-upload" type="button">
-                        <span>+</span> Add Artwork
-                    </button>
-                </section>
-
-                <section class="upload-panel" id="upload-panel" hidden>
-                    <div class="upload-title">
-                        <h2>Add a new piece</h2>
-                        <button class="close-btn" id="close-upload" type="button">
-                            Close
-                        </button>
-                    </div>
-
-                    <form class="upload-form" id="artwork-form">
-                        <label class="field">
-                            Artwork title
-                            <input
-                                type="text"
-                                id="art-title"
-                                placeholder="e.g. Maasai Sunset"
-                                required
-                            >
-                        </label>
-
-                        <label class="field">
-                            Price (KES)
-                            <input
-                                type="number"
-                                id="art-price"
-                                min="0"
-                                step="1"
-                                placeholder="e.g. 2500"
-                                required
-                            >
-                        </label>
-
-                        <label class="field">
-                            Category
-                            <select id="art-category" required>
-                                <option value="">Choose a category</option>
-                                <option>Paintings</option>
-                                <option>Pottery</option>
-                                <option>Jewellery</option>
-                                <option>Textiles</option>
-                                <option>Woodwork</option>
-                                <option>Baskets and Weaving</option>
-                                <option>Sculpture</option>
-                                <option>Other</option>
-                            </select>
-                        </label>
-
-                        <label class="field">
-                            Artwork image
-                            <input
-                                type="file"
-                                id="art-image"
-                                accept="image/*"
-                                required
-                            >
-                        </label>
-
-                        <label class="field full">
-                            Description
-                            <textarea
-                                id="art-description"
-                                placeholder="Tell buyers about the materials, inspiration and story behind your piece."
-                                required
-                            ></textarea>
-                        </label>
-
-                        <p class="form-note">
-                            This form is the front-end design. Saving products
-                            and uploading images to Supabase Storage still needs
-                            to be connected to your existing database.
-                        </p>
-
-                        <div class="form-message" id="form-message" hidden></div>
-
-                        <div class="field full">
-                            <button class="primary-btn" type="submit">
-                                Preview Artwork
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <section id="my-artwork">
-                    <div class="gallery-heading">
-                        <div>
-                            <h2>Your collection</h2>
-                            <p>A gallery of the things you create.</p>
-                        </div>
-
-                        <span class="art-count" id="art-count">0 pieces</span>
-                    </div>
-
-                    <div class="art-grid" id="art-grid" hidden></div>
-
-                    <div class="empty-state" id="empty-state">
-                        <div class="empty-symbol">✳</div>
-                        <h3>Your gallery starts here.</h3>
-                        <p>
-                            Every great collection begins with one piece.
-                            Add your first creation and let your work speak
-                            for itself.
-                        </p>
-                        <button class="primary-btn" id="empty-upload" type="button">
-                            + Add Your First Artwork
-                        </button>
-                    </div>
-                </section>
-
-                <section id="orders" style="margin-top: 55px;">
-                    <div class="gallery-heading">
-                        <div>
-                            <h2>Orders</h2>
-                            <p>Your customer orders will be managed here.</p>
-                        </div>
-                    </div>
-
-                    <p style="color: #77766d; font: 13px/1.8 Arial, sans-serif;">
-                        Order information will appear here once connected
-                        to your marketplace's order system.
-                    </p>
-                </section>
-
-                <section id="profile" style="margin-top: 45px;">
-                    <div class="gallery-heading">
-                        <div>
-                            <h2>My Profile</h2>
-                            <p>Your artisan profile and shop details.</p>
-                        </div>
-                    </div>
-
-                    <a class="market-link" href="index.html">
-                        View the marketplace ↗
-                    </a>
-                </section>
-
-            </main>
-
-            <footer class="footer">
-                © 2026 Kenyan Artisans · Celebrating Kenyan creativity.
-            </footer>
-        </div>
+  <div class="studio">
+    <aside class="sidebar">
+      <a class="brand" href="seller.html"><div class="brand-mark"><span>K</span></div><div class="brand-name">Kenyan Artisans<small>SELLER STUDIO</small></div></a>
+      <p class="nav-label">WORKSPACE</p>
+      <nav>
+        <a class="nav-link active" href="#overview"><span class="nav-icon">⌂</span>Overview</a>
+        <a class="nav-link" href="#my-artwork"><span class="nav-icon">◇</span>My Artwork</a>
+        <a class="nav-link" href="#orders"><span class="nav-icon">▤</span>Orders</a>
+        <a class="nav-link" href="#profile"><span class="nav-icon">○</span>My Profile</a>
+      </nav>
+      <div class="sidebar-bottom"><div class="sidebar-note"><span>✳</span>Every piece tells a story.<br>Share yours with the world.</div></div>
+    </aside>
+    <div class="main-area">
+      <header class="topbar"><span class="topbar-label">YOUR CREATIVE SPACE</span><div class="topbar-right"><a class="market-link" href="index.html">Visit Marketplace ↗</a><div class="avatar" id="seller-avatar">K</div></div></header>
+      <main class="content" id="overview">
+        <section class="welcome">
+          <div><div class="eyebrow">Made with purpose. Crafted with soul.</div><h1>Welcome to your studio.</h1><p>Manage your artwork and share your craft with people who value handmade work.</p></div>
+          <button class="primary-btn" id="open-upload" type="button"><span>+</span>Add Artwork</button>
+        </section>
+        <section class="upload-panel" id="upload-panel" hidden>
+          <div class="upload-title"><h2>Publish a new piece</h2><button class="close-btn" id="close-upload" type="button">Close</button></div>
+          <form class="upload-form" id="artwork-form">
+            <label class="field">Artwork title<input type="text" id="art-title" maxlength="80" placeholder="e.g. Maasai Sunset" required></label>
+            <label class="field">Price (KSh)<input type="number" id="art-price" min="1" step="1" placeholder="e.g. 2500" required></label>
+            <label class="field">Category<select id="art-category" required><option value="">Choose a category</option><option>Paintings</option><option>Pottery</option><option>Jewellery</option><option>Home &amp; décor</option><option>Textiles</option><option>Woodwork</option><option>Baskets and Weaving</option><option>Sculpture</option><option>Other</option></select></label>
+            <label class="field">Artwork image<input type="file" id="art-image" accept="image/*" required><small>Choose an image smaller than 1.5 MB.</small></label>
+            <label class="field">Artist / shop name<input type="text" id="art-maker" maxlength="70" placeholder="Your artist or shop name" required></label>
+            <label class="field">Town or county<input type="text" id="art-location" maxlength="70" placeholder="e.g. Kisumu, Kenya" required></label>
+            <label class="field full">Description<textarea id="art-description" maxlength="500" placeholder="Tell buyers about the materials, inspiration and story behind your piece." required></textarea></label>
+            <p class="form-note">Your listing is saved in this browser and will appear in Explore Art when the marketplace is opened on the same site and browser. Cross-device public listings require a database connection.</p>
+            <p class="form-message" id="form-message" aria-live="polite" hidden></p>
+            <div class="field full"><button class="primary-btn" type="submit">Publish Artwork ↗</button></div>
+          </form>
+        </section>
+        <section id="my-artwork">
+          <div class="gallery-heading"><div><h2>Your collection</h2><p>The artwork you've published from this seller account.</p></div><span class="art-count" id="art-count">0 pieces</span></div>
+          <div class="art-grid" id="art-grid" hidden></div>
+          <div class="empty-state" id="empty-state"><div class="empty-symbol">✳</div><h3>Your gallery starts here.</h3><p>Every great collection begins with one piece. Publish your first creation and let your work speak for itself.</p><button class="primary-btn" id="empty-upload" type="button">+ Add Your First Artwork</button></div>
+        </section>
+        <section id="orders" style="margin-top:55px"><div class="gallery-heading"><div><h2>Orders</h2><p>Your customer orders will be managed here.</p></div></div><p style="color:#77766d;font:13px/1.8 Arial,sans-serif">Order management will be available after the marketplace order system is connected.</p></section>
+        <section id="profile" style="margin-top:45px"><div class="gallery-heading"><div><h2>My Profile</h2><p>Your artisan profile and shop details.</p></div></div><a class="market-link" href="index.html">View the marketplace ↗</a></section>
+      </main>
+      <footer class="footer">© <span id="year"></span> Kenyan Artisans · Celebrating Kenyan creativity.</footer>
     </div>
+  </div>
+  <script>
+document.addEventListener("DOMContentLoaded", async function () {
+  const PRODUCT_TABLE = "artworks";
+  const STORAGE_BUCKET = "artwork-images";
+  const message = document.getElementById("form-message");
+  let client;
+  let session;
+  let artworks = [];
 
-    <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-            const client = getSupabaseClient();
+  function showMessage(text, success = false) {
+    message.hidden = false;
+    message.classList.toggle("success", success);
+    message.textContent = text;
+  }
 
-            const { data: { session }, error: sessionError } =
-                await client.auth.getSession();
+  function formatPrice(price) {
+    return new Intl.NumberFormat("en-KE", {
+      style: "currency", currency: "KES", maximumFractionDigits: 0
+    }).format(Number(price) || 0).replace("KES", "KSh");
+  }
 
-            if (sessionError || !session) {
-                window.location.href = "login.html";
-                return;
-            }
+  function textElement(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    element.textContent = text;
+    return element;
+  }
 
-            const { data: profile, error } = await client
-                .from("profiles")
-                .select("role")
-                .eq("id", session.user.id)
-                .single();
+  try {
+    if (typeof getSupabaseClient !== "function") {
+      throw new Error("Supabase did not load. Check the Supabase and auth.js script tags.");
+    }
+    client = getSupabaseClient();
+    const { data, error: sessionError } = await client.auth.getSession();
+    if (sessionError) throw sessionError;
+    session = data.session;
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
 
-            if (error || !profile || profile.role !== "seller") {
-                window.location.href = "customer.html";
-                return;
-            }
+    const { data: profile, error: profileError } = await client
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+    if (profileError || !profile) throw new Error("Your account profile could not be found. Log out and log in again.");
+    if (profile.role !== "seller") {
+      window.location.href = profile.role === "customer" ? "customer.html" : "login.html";
+      return;
+    }
+  } catch (error) {
+    document.querySelector(".welcome p").textContent = error.message || "Could not check your seller account. Please try again.";
+    document.getElementById("open-upload").disabled = true;
+    document.getElementById("empty-upload").disabled = true;
+    return;
+  }
 
-            const uploadPanel = document.getElementById("upload-panel");
-            const artworkForm = document.getElementById("artwork-form");
-            const artGrid = document.getElementById("art-grid");
-            const emptyState = document.getElementById("empty-state");
-            const artCount = document.getElementById("art-count");
-            const formMessage = document.getElementById("form-message");
+  document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById("seller-avatar").textContent = (session.user.email || "K").charAt(0).toUpperCase();
+  const uploadPanel = document.getElementById("upload-panel");
+  const form = document.getElementById("artwork-form");
+  const artGrid = document.getElementById("art-grid");
+  const emptyState = document.getElementById("empty-state");
+  const artCount = document.getElementById("art-count");
 
-            const artworks = [];
+  async function loadArtworks() {
+    const { data, error } = await client
+      .from(PRODUCT_TABLE)
+      .select("id,seller_id,title,price,category,maker,location,description,image_url,image_path,published,created_at")
+      .eq("seller_id", session.user.id)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    artworks = data || [];
+    displayArtworks();
+  }
 
-            function openUpload() {
-                uploadPanel.hidden = false;
-                uploadPanel.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            }
+  function displayArtworks() {
+    artGrid.replaceChildren();
+    artCount.textContent = `${artworks.length} ${artworks.length === 1 ? "piece" : "pieces"}`;
+    artGrid.hidden = artworks.length === 0;
+    emptyState.hidden = artworks.length > 0;
 
-            document.getElementById("open-upload")
-                .addEventListener("click", openUpload);
+    artworks.forEach((artwork) => {
+      const card = document.createElement("article");
+      card.className = "art-card";
+      const imageBox = document.createElement("div");
+      imageBox.className = "art-image";
+      const image = document.createElement("img");
+      image.src = artwork.image_url;
+      image.alt = artwork.title;
+      image.loading = "lazy";
+      imageBox.appendChild(image);
 
-            document.getElementById("empty-upload")
-                .addEventListener("click", openUpload);
+      const details = document.createElement("div");
+      details.className = "art-details";
+      details.appendChild(textElement("h3", "", artwork.title));
+      const meta = document.createElement("div");
+      meta.className = "art-meta";
+      meta.append(
+        textElement("span", "", artwork.category),
+        textElement("span", "art-price", formatPrice(artwork.price))
+      );
+      details.appendChild(meta);
+      details.appendChild(textElement("p", "art-description", artwork.description));
 
-            document.getElementById("close-upload")
-                .addEventListener("click", function () {
-                    uploadPanel.hidden = true;
-                });
+      const actions = document.createElement("div");
+      actions.className = "art-actions";
+      const removeButton = textElement("button", "remove-btn", "Remove listing");
+      removeButton.type = "button";
+      removeButton.addEventListener("click", async function () {
+        removeButton.disabled = true;
+        try {
+          const { error } = await client
+            .from(PRODUCT_TABLE)
+            .delete()
+            .eq("id", artwork.id)
+            .eq("seller_id", session.user.id);
+          if (error) throw error;
+          if (artwork.image_path) {
+            const { error: imageError } = await client.storage
+              .from(STORAGE_BUCKET)
+              .remove([artwork.image_path]);
+            if (imageError) console.warn("Artwork was deleted, but its image could not be removed:", imageError.message);
+          }
+          artworks = artworks.filter((item) => item.id !== artwork.id);
+          displayArtworks();
+          showMessage("Your artwork has been removed from the marketplace.", true);
+        } catch (error) {
+          removeButton.disabled = false;
+          showMessage(error.message || "Could not remove this artwork.");
+        }
+      });
+      actions.appendChild(removeButton);
+      details.appendChild(actions);
+      card.append(imageBox, details);
+      artGrid.appendChild(card);
+    });
+  }
 
-            function displayArtworks() {
-                artGrid.innerHTML = "";
-                artCount.textContent =
-                    artworks.length + (artworks.length === 1 ? " piece" : " pieces");
+  function openUpload() {
+    uploadPanel.hidden = false;
+    uploadPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("art-title").focus({ preventScroll: true });
+  }
+  document.getElementById("open-upload").addEventListener("click", openUpload);
+  document.getElementById("empty-upload").addEventListener("click", openUpload);
+  document.getElementById("close-upload").addEventListener("click", () => { uploadPanel.hidden = true; });
 
-                artGrid.hidden = artworks.length === 0;
-                emptyState.hidden = artworks.length > 0;
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    message.hidden = true;
+    const submitButton = form.querySelector("button[type='submit']");
+    const file = document.getElementById("art-image").files[0];
+    const title = document.getElementById("art-title").value.trim();
+    const price = Number(document.getElementById("art-price").value);
+    const category = document.getElementById("art-category").value;
+    const maker = document.getElementById("art-maker").value.trim();
+    const location = document.getElementById("art-location").value.trim();
+    const description = document.getElementById("art-description").value.trim();
 
-                artworks.forEach(function (artwork, index) {
-                    const card = document.createElement("article");
-                    card.className = "art-card";
+    if (!file || !file.type.startsWith("image/")) { showMessage("Please choose an image file for your artwork."); return; }
+    if (file.size > 1.5 * 1024 * 1024) { showMessage("That image is too large. Please use an image smaller than 1.5 MB."); return; }
+    if (!title || !Number.isFinite(price) || price < 1 || !category || !maker || !location || !description) {
+      showMessage("Please complete every field and enter a valid price.");
+      return;
+    }
 
-                    const imageBox = document.createElement("div");
-                    imageBox.className = "art-image";
-
-                    const image = document.createElement("img");
-                    image.src = artwork.image;
-                    image.alt = artwork.title;
-
-                    imageBox.appendChild(image);
-
-                    const details = document.createElement("div");
-                    details.className = "art-details";
-
-                    const title = document.createElement("h3");
-                    title.textContent = artwork.title;
-
-                    const meta = document.createElement("div");
-                    meta.className = "art-meta";
-
-                    const category = document.createElement("span");
-                    category.textContent = artwork.category;
-
-                    const price = document.createElement("span");
-                    price.className = "art-price";
-                    price.textContent =
-                        "KES " + Number(artwork.price).toLocaleString("en-KE");
-
-                    meta.append(category, price);
-
-                    const description = document.createElement("p");
-                    description.textContent = artwork.description;
-                    description.style.cssText =
-                        "color:#77766d;font:12px/1.7 Arial,sans-serif;";
-
-                    const actions = document.createElement("div");
-                    actions.className = "art-actions";
-
-                    const removeButton = document.createElement("button");
-                    removeButton.className = "remove-btn";
-                    removeButton.type = "button";
-                    removeButton.textContent = "Remove preview";
-
-                    removeButton.addEventListener("click", function () {
-                        artworks.splice(index, 1);
-                        displayArtworks();
-                    });
-
-                    actions.appendChild(removeButton);
-                    details.append(title, meta, description, actions);
-                    card.append(imageBox, details);
-                    artGrid.appendChild(card);
-                });
-            }
-
-            artworkForm.addEventListener("submit", function (event) {
-                event.preventDefault();
-
-                const file = document.getElementById("art-image").files[0];
-
-                if (!file) {
-                    return;
-                }
-
-                if (!file.type.startsWith("image/")) {
-                    formMessage.hidden = false;
-                    formMessage.textContent = "Please choose an image file.";
-                    return;
-                }
-
-                if (file.size > 5 * 1024 * 1024) {
-                    formMessage.hidden = false;
-                    formMessage.textContent =
-                        "Please choose an image smaller than 5 MB.";
-                    return;
-                }
-
-                const imageURL = URL.createObjectURL(file);
-
-                artworks.push({
-                    title: document.getElementById("art-title").value.trim(),
-                    price: document.getElementById("art-price").value,
-                    category: document.getElementById("art-category").value,
-                    description: document.getElementById("art-description").value.trim(),
-                    image: imageURL
-                });
-
-                displayArtworks();
-
-                artworkForm.reset();
-                formMessage.hidden = true;
-                uploadPanel.hidden = true;
-
-                document.getElementById("my-artwork").scrollIntoView({
-                    behavior: "smooth"
-                });
-            });
+    submitButton.disabled = true;
+    submitButton.textContent = "Publishing artwork...";
+    let uploadedPath = null;
+    try {
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const uniqueName = `${Date.now()}-${safeFileName}`;
+      uploadedPath = `${session.user.id}/${uniqueName}`;
+      const { error: uploadError } = await client.storage
+        .from(STORAGE_BUCKET)
+        .upload(uploadedPath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type
         });
-    </script>
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = client.storage.from(STORAGE_BUCKET).getPublicUrl(uploadedPath);
+      const { data: insertedArtwork, error: insertError } = await client
+        .from(PRODUCT_TABLE)
+        .insert({
+          seller_id: session.user.id,
+          title,
+          price,
+          category,
+          maker,
+          location,
+          description,
+          image_url: publicData.publicUrl,
+          image_path: uploadedPath,
+          published: true
+        })
+        .select("id,seller_id,title,price,category,maker,location,description,image_url,image_path,published,created_at")
+        .single();
+      if (insertError) throw insertError;
+      uploadedPath = null;
+
+      form.reset();
+      if (insertedArtwork) artworks = [insertedArtwork, ...artworks];
+      displayArtworks();
+      showMessage("Artwork published! It is now available for shoppers in Explore Art.", true);
+      document.getElementById("my-artwork").scrollIntoView({ behavior: "smooth" });
+    } catch (error) {
+      if (uploadedPath) {
+        const { error: cleanupError } = await client.storage.from(STORAGE_BUCKET).remove([uploadedPath]);
+        if (cleanupError) console.warn("Could not clean up the uploaded image:", cleanupError.message);
+      }
+      showMessage(error.message || "Could not publish this artwork. Check your database and Storage setup.");
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = "Publish Artwork ↗";
+    }
+  });
+
+  try {
+    await loadArtworks();
+  } catch (error) {
+    showMessage("Could not load your artwork. Run the setup SQL in Supabase and check the artworks table and artwork-images bucket.");
+    console.error("Could not load seller artworks:", error.message);
+  }
+});
+  </script>
 </body>
 </html>

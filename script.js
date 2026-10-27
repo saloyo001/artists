@@ -1,954 +1,1242 @@
-// The marketplace starts empty. Artists add their own products in Artist Studio.
-const productGrid = document.getElementById("product-grid");
-const searchInput = document.getElementById("product-search");
-const filterButtons = document.querySelectorAll(".filter");
-const resultCount = document.getElementById("result-count");
-const emptyState = document.getElementById("empty-state");
-const cartCount = document.getElementById("cart-count");
-const toast = document.getElementById("toast");
-const PRODUCT_KEY = "kenyanArtisansProducts";
+// Kenyan Artisans marketplace.
+// Artwork publishing is handled in seller.html.
 
-let products = JSON.parse(localStorage.getItem(PRODUCT_KEY) || "[]");
+const $ = (id) => document.getElementById(id);
+
+const PRODUCT_KEY = "kenyanArtisansProducts";
+const CART_KEY = "kenyanArtisansCart";
+const FAV_KEY = "kenyanArtisansFavourites";
+const CUSTOMER_KEY = "kenyanArtisansCustomer";
+const THEME_KEY = "kenyanArtisansTheme";
+
+const ORDER_WHATSAPP = "254787424047";
+
+function readStorage(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : JSON.parse(value);
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+let localProducts = readStorage(PRODUCT_KEY, []);
+if (!Array.isArray(localProducts)) localProducts = [];
+
+let remoteProducts = [];
+let remoteProductsLoaded = false;
+let products = [...localProducts];
+
+let cart = readStorage(CART_KEY, []);
+if (!Array.isArray(cart)) cart = [];
+
+const savedFavourites = readStorage(FAV_KEY, []);
+let favourites = new Set(
+  Array.isArray(savedFavourites) ? savedFavourites.map(String) : []
+);
+
 let selectedCategory = "All";
-let cart = JSON.parse(localStorage.getItem("kenyanArtisansCart") || "[]");
 let selectedProductId = null;
+let favouritesOnly = false;
 let toastTimer;
 
-function formatPrice(price) {
-  return new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 }).format(price).replace("KES", "KSh");
-}
+const productGrid = $("product-grid");
+const searchInput = $("product-search");
+const categoryFilters = $("category-filters");
+const resultCount = $("result-count");
+const emptyState = $("empty-state");
+const cartCount = $("cart-count");
+const cartItems = $("cart-items");
+const cartTotal = $("cart-total");
+const toastElement = $("toast");
+const wishlistGrid = $("wishlist-grid");
+const wishlistTotal = $("wishlist-total");
+const wishlistEmpty = $("wishlist-empty");
 
-function saveProducts() {
-  localStorage.setItem(PRODUCT_KEY, JSON.stringify(products));
-}
-
-function renderProducts() {
-  const searchTerm = searchInput.value.trim().toLowerCase();
-  const visibleProducts = products.filter((product) => {
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-    const searchableText = `${product.name} ${product.category} ${product.maker} ${product.location}`.toLowerCase();
-    return matchesCategory && searchableText.includes(searchTerm);
-  });
-
-  productGrid.innerHTML = visibleProducts.map((product) => `
-    <article class="product-card" data-product-id="${product.id}" tabindex="0" aria-label="View ${escapeHtml(product.name)}">
-      <div class="product-image-wrap">
-        <img src="${product.image}" alt="${escapeHtml(product.name)}" loading="lazy"> 
-       <span class="product-tag">ARTIST LISTING</span>
-       <button class="wishlist-toggle" data-wishlist="${product.id}" aria-label="Add ${escapeHtml(product.name)} to favourites" aria-pressed="false">♡</button>
-       <button class="quick-add" data-add="${product.id}" aria-label="Add ${escapeHtml(product.name)} to cart">+</button>
-       <div class="product-info">
-        <span class="product-category">${escapeHtml(product.category)}</span>
-        <h3>${escapeHtml(product.name)}</h3>
-        <span class="product-maker">By ${escapeHtml(product.maker)}</span>
-        <div class="product-price-row"><strong class="product-price">${formatPrice(product.price)}</strong><span class="product-location">${escapeHtml(product.location.split(",")[0])}</span></div>
-      </div>
-    </article>`).join("");
-
-  resultCount.textContent = `${visibleProducts.length} ${visibleProducts.length === 1 ? "piece" : "pieces"} to discover`;
-  emptyState.textContent = products.length === 0
-    ? "No artwork has been added yet. If you're an artist, use Artist Studio below to publish the first piece."
-    : "No artwork matches that search. Try another word or category.";
-  emptyState.classList.toggle("hidden", visibleProducts.length > 0);
-}
+const reducedMotion = window.matchMedia(
+  "(prefers-reduced-motion: reduce)"
+).matches;
 
 function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[character]);
+}
+
+function getProductName(product) {
+  return product.name || product.title || "Untitled artwork";
+}
+
+function formatPrice(price) {
+  const amount = Number(price) || 0;
+
+  return new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency: "KES",
+    maximumFractionDigits: 0
+  }).format(amount).replace("KES", "KSh");
 }
 
 function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
-}
+  if (!toastElement) return;
 
-function saveCart() {
-  localStorage.setItem("kenyanArtisansCart", JSON.stringify(cart));
-  cartCount.textContent = cart.reduce((total, item) => total + item.quantity, 0);
-  renderCart();
-}
+  toastElement.textContent = message;
+  toastElement.classList.add("show");
 
-function addToCart(productId) {
-  const product = products.find((item) => item.id === Number(productId));
-  if (!product) return;
-  const existingItem = cart.find((item) => item.id === product.id);
-  if (existingItem) existingItem.quantity += 1;
-  else cart.push({ id: product.id, quantity: 1 });
-  saveCart();
-  showToast(`${product.name} added to your basket.`);
-}
+  window.clearTimeout(toastTimer);
 
-function renderCart() {
-  const cartItems = document.getElementById("cart-items");
-  const totalElement = document.getElementById("cart-total");
-  cart = cart.filter((item) => products.some((product) => product.id === item.id));
-  if (cart.length === 0) {
-    cartItems.innerHTML = '<p class="empty-cart">Your basket is waiting for something special.</p>';
-    totalElement.textContent = formatPrice(0);
-    return;
-  }
-  cartItems.innerHTML = cart.map((item) => {
-    const product = products.find((entry) => entry.id === item.id);
-    return `<div class="cart-row"><img src="${product.image}" alt=""><div><strong>${escapeHtml(product.name)}</strong><small>${item.quantity} × ${formatPrice(product.price)}</small></div><button class="remove-item" data-remove="${product.id}">Remove</button></div>`;
-  }).join("");
-  const total = cart.reduce((sum, item) => sum + products.find((product) => product.id === item.id).price * item.quantity, 0);
-  totalElement.textContent = formatPrice(total);
+  toastTimer = window.setTimeout(() => {
+    toastElement.classList.remove("show");
+  }, 2600);
 }
 
 function openModal(id) {
-  document.getElementById(id).classList.remove("hidden");
+  const modal = $(id);
+
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
+
 function closeModals() {
-  document.querySelectorAll(".modal-backdrop").forEach((modal) => modal.classList.add("hidden"));
+  document.querySelectorAll(".modal-backdrop").forEach((modal) => {
+    modal.classList.add("hidden");
+  });
+
   document.body.style.overflow = "";
 }
+
+function saveProducts() {
+  return writeStorage(PRODUCT_KEY, products);
+}
+
+function canonicalProductId(value) {
+  if (value && typeof value === "object") {
+    if (
+      value.databaseId !== undefined &&
+      value.databaseId !== null &&
+      value.databaseId !== ""
+    ) {
+      return String(value.databaseId);
+    }
+
+    value = value.id;
+  }
+
+  const id = String(value ?? "");
+
+  return id.startsWith("remote-")
+    ? id.slice("remote-".length)
+    : id;
+}
+
+function getProduct(productId) {
+  const id = String(productId ?? "");
+  const canonicalId = canonicalProductId(id);
+
+  return products.find((product) =>
+    String(product.id ?? "") === id ||
+    String(product.databaseId ?? "") === id ||
+    canonicalProductId(product) === canonicalId
+  );
+}
+
+function makeCartSnapshot(product) {
+  const image = String(product.image || "");
+
+  return {
+    id: String(product.id ?? ""),
+    databaseId: product.databaseId || null,
+    name: getProductName(product),
+    category: product.category || "Other",
+    price: Number(product.price || 0),
+    maker: product.maker || "Kenyan artisan",
+    location: product.location || "Kenya",
+    description: product.description || "",
+    image: image.startsWith("data:") ? "" : image
+  };
+}
+
+function getCartProduct(item) {
+  if (!item) return null;
+
+  const snapshot = item.product || null;
+
+  const liveProduct =
+    getProduct(item.id) ||
+    getProduct(item.databaseId) ||
+    getProduct(snapshot?.id) ||
+    getProduct(snapshot?.databaseId);
+
+  return liveProduct || snapshot;
+}
+
+function saveCart() {
+  cart = cart.map((item) => {
+    const product =
+      getProduct(item.id) ||
+      getProduct(item.databaseId) ||
+      getProduct(item.product?.id) ||
+      getProduct(item.product?.databaseId) ||
+      item.product;
+
+    if (!product) {
+      return {
+        ...item,
+        quantity: Math.max(1, Number(item.quantity || 1))
+      };
+    }
+
+    return {
+      ...item,
+      id: String(product.id ?? item.id),
+      quantity: Math.max(1, Number(item.quantity || 1)),
+      product: makeCartSnapshot(product)
+    };
+  });
+
+  if (remoteProductsLoaded) {
+    cart = cart.filter((item) => getCartProduct(item));
+  }
+
+  writeStorage(CART_KEY, cart);
+
+  if (cartCount) {
+    cartCount.textContent = cart.reduce(
+      (total, item) => total + Number(item.quantity || 0),
+      0
+    );
+  }
+
+  renderCart();
+}
+
+function saveFavourites() {
+  writeStorage(FAV_KEY, [...favourites]);
+}
+
+function productCard(product, saved = false) {
+  const id = escapeHtml(product.id);
+  const name = getProductName(product);
+  const image = escapeHtml(product.image || "");
+  const category = escapeHtml(product.category || "Other");
+  const maker = escapeHtml(product.maker || "Kenyan artisan");
+  const location = escapeHtml(
+    String(product.location || "Kenya").split(",")[0]
+  );
+
+  const pressed = favourites.has(String(product.id));
+
+  return `
+    <article
+      class="product-card"
+      data-product-id="${id}"
+      tabindex="0"
+      aria-label="View ${escapeHtml(name)}"
+    >
+      <div class="product-image-wrap">
+        <img
+          src="${image}"
+          alt="${escapeHtml(name)}"
+          loading="lazy"
+        >
+
+        <span class="product-tag">
+          ${saved ? "SAVED" : "ARTIST LISTING"}
+        </span>
+
+        <button
+          type="button"
+          class="wishlist-toggle${pressed ? " restored" : ""}"
+          data-wishlist="${id}"
+          aria-label="${pressed ? "Remove" : "Add"} ${escapeHtml(name)} ${pressed ? "from" : "to"} favourites"
+          aria-pressed="${pressed}"
+        >${pressed ? "♥" : "♡"}</button>
+
+        <button
+          type="button"
+          class="quick-add"
+          data-add="${id}"
+          aria-label="Add ${escapeHtml(name)} to cart"
+        >+</button>
+      </div>
+
+      <div class="product-info">
+        <span class="product-category">${category}</span>
+        <h3>${escapeHtml(name)}</h3>
+        <span class="product-maker">By ${maker}</span>
+
+        <div class="product-price-row">
+          <strong class="product-price">
+            ${formatPrice(product.price)}
+          </strong>
+          <span class="product-location">${location}</span>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function getVisibleProducts() {
+  const term = searchInput
+    ? searchInput.value.trim().toLowerCase()
+    : "";
+
+  return products.filter((product) => {
+    const name = getProductName(product);
+    const category = String(product.category || "Other");
+    const maker = String(product.maker || "");
+    const location = String(product.location || "");
+
+    const matchesCategory =
+      selectedCategory === "All" ||
+      category === selectedCategory;
+
+    const text = `
+      ${name}
+      ${category}
+      ${maker}
+      ${location}
+      ${product.description || ""}
+    `.toLowerCase();
+
+    const matchesSearch = text.includes(term);
+
+    const matchesFavourite =
+      !favouritesOnly ||
+      favourites.has(String(product.id));
+
+    return matchesCategory && matchesSearch && matchesFavourite;
+  });
+}
+
+function renderWishlist() {
+  const saved = products.filter((product) =>
+    favourites.has(String(product.id))
+  );
+
+  if (wishlistTotal) {
+    wishlistTotal.textContent =
+      `${saved.length} saved ${saved.length === 1 ? "piece" : "pieces"}`;
+  }
+
+  if (wishlistEmpty) {
+    wishlistEmpty.classList.toggle("hidden", saved.length > 0);
+  }
+
+  if (wishlistGrid) {
+    wishlistGrid.innerHTML = saved
+      .map((product) => productCard(product, true))
+      .join("");
+  }
+
+  const badge = document.querySelector(".fav-badge");
+
+  if (badge) {
+    badge.textContent = favourites.size;
+    badge.classList.toggle("has-items", favourites.size > 0);
+  }
+}
+
+function renderProducts() {
+  if (!productGrid) return;
+
+  const visibleProducts = getVisibleProducts();
+
+  productGrid.innerHTML = visibleProducts
+    .map((product) => productCard(product))
+    .join("");
+
+  if (resultCount) {
+    resultCount.textContent =
+      `${visibleProducts.length} ${visibleProducts.length === 1 ? "piece" : "pieces"} to discover`;
+  }
+
+  if (emptyState) {
+    if (products.length === 0) {
+      emptyState.textContent =
+        "No artwork has been published yet. Sellers can add pieces from the Seller Dashboard.";
+    } else if (favouritesOnly && visibleProducts.length === 0) {
+      emptyState.textContent =
+        "No favourites here yet. Tap the heart on artwork you love.";
+    } else {
+      emptyState.textContent =
+        "No artwork matches that search. Try another word or category.";
+    }
+
+    emptyState.classList.toggle("hidden", visibleProducts.length > 0);
+  }
+
+  renderWishlist();
+}
+
+function renderCart() {
+  if (!cartItems || !cartTotal) return;
+
+  const visibleItems = cart
+    .map((item) => ({
+      item,
+      product: getCartProduct(item)
+    }))
+    .filter((line) => line.product);
+
+  if (visibleItems.length === 0) {
+    cartItems.innerHTML =
+      cart.length && !remoteProductsLoaded
+        ? '<p class="empty-cart">Loading your basket…</p>'
+        : '<p class="empty-cart">Your basket is waiting for something special.</p>';
+
+    cartTotal.textContent = formatPrice(0);
+    return;
+  }
+
+  cartItems.innerHTML = visibleItems.map(({ item, product }) => `
+    <div class="cart-row">
+      <img src="${escapeHtml(product.image || "")}" alt="">
+
+      <div>
+        <strong>${escapeHtml(getProductName(product))}</strong>
+        <small>
+          ${Number(item.quantity || 1)} × ${formatPrice(product.price)}
+        </small>
+      </div>
+
+      <button
+        type="button"
+        class="remove-item"
+        data-remove="${escapeHtml(product.id)}"
+      >Remove</button>
+    </div>
+  `).join("");
+
+  const total = visibleItems.reduce(
+    (sum, { item, product }) =>
+      sum + Number(product.price || 0) * Number(item.quantity || 1),
+    0
+  );
+
+  cartTotal.textContent = formatPrice(total);
+}
+
+function addToCart(productId) {
+  const product = getProduct(productId);
+
+  if (!product) {
+    showToast("This artwork is still loading. Please try again.");
+    return false;
+  }
+
+  const targetKey = canonicalProductId(product);
+
+  const existing = cart.find((item) => {
+    const itemProduct =
+      item.product ||
+      getProduct(item.id) ||
+      getProduct(item.databaseId);
+
+    return canonicalProductId(
+      itemProduct || item.databaseId || item.id
+    ) === targetKey;
+  });
+
+  if (existing) {
+    existing.id = String(product.id);
+    existing.quantity =
+      Math.max(1, Number(existing.quantity || 1)) + 1;
+    existing.product = makeCartSnapshot(product);
+  } else {
+    cart.push({
+      id: String(product.id),
+      quantity: 1,
+      product: makeCartSnapshot(product)
+    });
+  }
+
+  saveCart();
+  showToast(`${getProductName(product)} added to your basket.`);
+
+  return true;
+}
+
 function showProduct(productId) {
-  const product = products.find((item) => item.id === Number(productId));
+  const product = getProduct(productId);
+
   if (!product) return;
+
   selectedProductId = product.id;
-  document.getElementById("modal-image").src = product.image;
-  document.getElementById("modal-image").alt = product.name;
-  document.getElementById("modal-category").textContent = product.category;
-  document.getElementById("modal-title").textContent = product.name;
-  document.getElementById("modal-description").textContent = product.description;
-  document.getElementById("modal-maker").textContent = `Made by ${product.maker} · ${product.location}`;
-  document.getElementById("modal-price").textContent = formatPrice(product.price);
+
+  if ($("modal-image")) {
+    $("modal-image").src = product.image || "";
+    $("modal-image").alt = getProductName(product);
+  }
+
+  if ($("modal-category")) {
+    $("modal-category").textContent = product.category || "Other";
+  }
+
+  if ($("modal-title")) {
+    $("modal-title").textContent = getProductName(product);
+  }
+
+  if ($("modal-description")) {
+    $("modal-description").textContent =
+      product.description || "A handmade piece from a Kenyan artisan.";
+  }
+
+  if ($("modal-maker")) {
+    $("modal-maker").textContent =
+      `Made by ${product.maker || "Kenyan artisan"} · ${product.location || "Kenya"}`;
+  }
+
+  if ($("modal-price")) {
+    $("modal-price").textContent = formatPrice(product.price);
+  }
+
   openModal("product-modal");
 }
 
-function renderMyListings() {
-  const container = document.getElementById("my-listings");
-  document.getElementById("my-listings-count").textContent = `${products.length} ${products.length === 1 ? "listing" : "listings"}`;
-  if (products.length === 0) {
-    container.innerHTML = '<p class="empty-listings">Your listings will appear here after you publish your first artwork.</p>';
+function toggleFavourite(productId) {
+  const id = String(productId);
+  const product = getProduct(id);
+
+  if (favourites.has(id)) {
+    favourites.delete(id);
+    showToast("Removed from your favourites.");
+  } else {
+    favourites.add(id);
+    showToast(
+      product
+        ? `${getProductName(product)} saved to your wishlist.`
+        : "Saved to your wishlist."
+    );
+  }
+
+  saveFavourites();
+  renderProducts();
+}
+
+// Product cards.
+[productGrid, wishlistGrid].filter(Boolean).forEach((grid) => {
+  grid.addEventListener("click", (event) => {
+    const heart = event.target.closest("[data-wishlist]");
+
+    if (heart) {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleFavourite(heart.dataset.wishlist);
+      return;
+    }
+
+    const add = event.target.closest("[data-add]");
+
+    if (add) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      flyToCart(add.closest(".product-card")?.querySelector("img"));
+      addToCart(add.dataset.add);
+      return;
+    }
+
+    const card = event.target.closest("[data-product-id]");
+
+    if (card) {
+      showProduct(card.dataset.productId);
+    }
+  });
+
+  grid.addEventListener("keydown", (event) => {
+    if (
+      (event.key === "Enter" || event.key === " ") &&
+      event.target.matches(".product-card")
+    ) {
+      event.preventDefault();
+      showProduct(event.target.dataset.productId);
+    }
+  });
+});
+
+function flyToCart(source) {
+  const cartButton = $("open-cart");
+
+  if (
+    reducedMotion ||
+    !source ||
+    !cartButton ||
+    typeof source.getBoundingClientRect !== "function"
+  ) {
     return;
   }
-  container.innerHTML = products.map((product) => `<article class="my-listing"><img src="${product.image}" alt="${escapeHtml(product.name)}"><div><strong>${escapeHtml(product.name)}</strong><small>${formatPrice(product.price)} · ${escapeHtml(product.category)}</small><button type="button" data-delete-product="${product.id}">Remove listing</button></div></article>`).join("");
+
+  const from = source.getBoundingClientRect();
+  const to = cartButton.getBoundingClientRect();
+
+  if (!from.width || !to.width) return;
+
+  const clone = document.createElement("img");
+
+  clone.src = source.currentSrc || source.src || "";
+  clone.alt = "";
+  clone.className = "fly-clone";
+
+  Object.assign(clone.style, {
+    left: `${from.left}px`,
+    top: `${from.top}px`,
+    width: `${from.width}px`,
+    height: `${from.height}px`
+  });
+
+  document.body.appendChild(clone);
+
+  const dx =
+    to.left + to.width / 2 - (from.left + from.width / 2);
+
+  const dy =
+    to.top + to.height / 2 - (from.top + from.height / 2);
+
+  const animation = clone.animate([
+    {
+      transform: "translate(0, 0) scale(1)",
+      opacity: 1,
+      borderRadius: "14px"
+    },
+    {
+      transform: `translate(${dx * 0.55}px, ${dy * 0.55 - 70}px) scale(.38)`,
+      opacity: .95,
+      borderRadius: "50%",
+      offset: .55
+    },
+    {
+      transform: `translate(${dx}px, ${dy}px) scale(.04)`,
+      opacity: .15,
+      borderRadius: "50%"
+    }
+  ], {
+    duration: 800,
+    easing: "cubic-bezier(.5, 0, .2, 1)"
+  });
+
+  animation.onfinish = () => clone.remove();
+  animation.oncancel = () => clone.remove();
 }
 
-productGrid.addEventListener("click", (event) => {
-  const addButton = event.target.closest("[data-add]");
-  if (addButton) { event.stopPropagation(); addToCart(addButton.dataset.add); return; }
-  const card = event.target.closest("[data-product-id]");
-  if (card) showProduct(card.dataset.productId);
+// Search.
+if (searchInput) {
+  searchInput.addEventListener("input", renderProducts);
+}
+
+// Category filters and favourites filter.
+if (categoryFilters) {
+  const favouriteButton = document.createElement("button");
+
+  favouriteButton.type = "button";
+  favouriteButton.className = "filter fav-filter";
+  favouriteButton.setAttribute("aria-pressed", "false");
+  favouriteButton.innerHTML =
+    '♥ Favourites <span class="fav-badge" aria-hidden="true">0</span>';
+
+  categoryFilters.appendChild(favouriteButton);
+
+  favouriteButton.addEventListener("click", () => {
+    favouritesOnly = !favouritesOnly;
+
+    favouriteButton.classList.toggle("active", favouritesOnly);
+    favouriteButton.setAttribute("aria-pressed", String(favouritesOnly));
+
+    renderProducts();
+  });
+
+  categoryFilters.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-category]");
+
+    if (!button) return;
+
+    selectedCategory = button.dataset.category;
+
+    categoryFilters.querySelectorAll("[data-category]").forEach((filter) => {
+      filter.classList.toggle("active", filter === button);
+    });
+
+    renderProducts();
+  });
+}
+
+// Category shortcut cards.
+document.querySelectorAll("[data-jump-category]").forEach((button) => {
+  button.addEventListener("click", () => {
+    selectedCategory = button.dataset.jumpCategory;
+
+    if (categoryFilters) {
+      categoryFilters.querySelectorAll("[data-category]").forEach((filter) => {
+        filter.classList.toggle(
+          "active",
+          filter.dataset.category === selectedCategory
+        );
+      });
+    }
+
+    renderProducts();
+
+    $("shop")?.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth"
+    });
+  });
 });
-productGrid.addEventListener("keydown", (event) => {
-  if ((event.key === "Enter" || event.key === " ") && event.target.matches(".product-card")) {
-    event.preventDefault(); showProduct(event.target.dataset.productId);
-  }
+
+// Search shortcut.
+$("search-focus")?.addEventListener("click", () => {
+  $("shop")?.scrollIntoView({
+    behavior: reducedMotion ? "auto" : "smooth"
+  });
+
+  searchInput?.focus({ preventScroll: true });
 });
-searchInput.addEventListener("input", renderProducts);
-document.getElementById("category-filters").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-category]");
+
+// Open basket.
+$("open-cart")?.addEventListener("click", () => {
+  renderCart();
+  openModal("cart-modal");
+});
+
+// Add from the artwork details window.
+$("modal-add")?.addEventListener("click", () => {
+  if (selectedProductId === null) return;
+
+  const added = addToCart(selectedProductId);
+
+  if (!added) return;
+
+  flyToCart($("modal-image"));
+  closeModals();
+  renderCart();
+  openModal("cart-modal");
+});
+
+// Remove an item from the cart.
+cartItems?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remove]");
+
   if (!button) return;
-  selectedCategory = button.dataset.category;
-  filterButtons.forEach((filter) => filter.classList.toggle("active", filter === button));
-  renderProducts();
-});
-document.querySelectorAll("[data-jump-category]").forEach((button) => button.addEventListener("click", () => {
-  selectedCategory = button.dataset.jumpCategory;
-  filterButtons.forEach((filter) => filter.classList.toggle("active", filter.dataset.category === selectedCategory));
-  renderProducts(); document.getElementById("shop").scrollIntoView({ behavior: "smooth" });
-}));
-document.getElementById("search-focus").addEventListener("click", () => {
-  document.getElementById("shop").scrollIntoView({ behavior: "smooth" }); searchInput.focus({ preventScroll: true });
-});
-document.getElementById("open-cart").addEventListener("click", () => { renderCart(); openModal("cart-modal"); });
 
-const settingsButton = document.getElementById("settings-open");
-const settingsModal = document.getElementById("settings-modal");
-const themeSelect = document.getElementById("theme-select");
+  cart = cart.filter(
+    (item) => String(item.id) !== String(button.dataset.remove)
+  );
 
+  saveCart();
+});
+
+// Theme and settings.
 function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  localStorage.setItem("kenyanArtisansTheme", theme);
+  const value = theme === "dark" ? "dark" : "light";
+
+  document.documentElement.dataset.theme = value;
+
+  try {
+    localStorage.setItem(THEME_KEY, value);
+  } catch (error) {
+    // Theme preferences are optional.
+  }
 }
 
-const savedTheme = localStorage.getItem("kenyanArtisansTheme") || "light";
-applyTheme(savedTheme);
-themeSelect.value = savedTheme;
+window.applyTheme = applyTheme;
 
-settingsButton.addEventListener("click", () => {
+const savedThemeRaw = localStorage.getItem(THEME_KEY);
+const savedTheme = savedThemeRaw === "dark" ? "dark" : "light";
+
+applyTheme(savedTheme);
+
+const themeSelect = $("theme-select");
+
+if (themeSelect) {
   themeSelect.value = document.documentElement.dataset.theme || "light";
+}
+
+$("settings-open")?.addEventListener("click", () => {
+  if (themeSelect) {
+    themeSelect.value = document.documentElement.dataset.theme || "light";
+  }
+
   openModal("settings-modal");
 });
 
-themeSelect.addEventListener("change", () => {
+themeSelect?.addEventListener("change", () => {
   applyTheme(themeSelect.value);
 });
 
-document.getElementById("modal-add").addEventListener("click", () => { if (selectedProductId !== null) addToCart(selectedProductId); closeModals(); });
-document.getElementById("cart-items").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-remove]");
-  if (!button) return;
-  cart = cart.filter((item) => item.id !== Number(button.dataset.remove)); saveCart();
-});
-document.getElementById("checkout-button").addEventListener("click", () => {
-  if (cart.length === 0) showToast("Add some artwork to your basket first.");
-  else showToast("Checkout is a demo. Payment integration is needed before real orders.");
-});
+// Checkout helpers.
+function cartLines() {
+  return cart
+    .map((item) => ({
+      item,
+      product: getCartProduct(item)
+    }))
+    .filter(({ item, product }) =>
+      product && Number(item.quantity || 1) > 0
+    );
+}
 
-document.addEventListener("click", (event) => {
-  if (event.target.closest("[data-close-modal]")) closeModals();
-});
+function cartTotalAmount() {
+  return cartLines().reduce(
+    (sum, { item, product }) =>
+      sum + Number(product.price || 0) * Number(item.quantity || 1),
+    0
+  );
+}
 
-document.querySelectorAll(".modal-backdrop").forEach((backdrop) => backdrop.addEventListener("click", (event) => { if (event.target === backdrop) closeModals(); }));
-document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeModals(); });
+function openCheckout() {
+  const form = $("checkout-form");
+  const summary = $("checkout-summary");
+  const total = $("checkout-total");
+  const message = $("checkout-message");
 
-function openSellerForm() { openModal("seller-modal"); }
-["seller-open", "hero-seller", "artisan-seller", "cta-seller"].forEach((id) => document.getElementById(id).addEventListener("click", openSellerForm));
-document.getElementById("go-to-studio").addEventListener("click", () => {
-  closeModals(); document.getElementById("artist-studio").scrollIntoView({ behavior: "smooth" });
-});
-
-document.getElementById("product-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const file = document.getElementById("product-image").files[0];
-  const message = document.getElementById("product-form-message");
-  if (!file) { message.textContent = "Please choose a photo of your artwork."; return; }
-  if (!file.type.startsWith("image/")) { message.textContent = "Please choose an image file."; return; }
-  if (file.size > 1.5 * 1024 * 1024) { message.textContent = "That image is too large. Please choose an image smaller than 1.5 MB."; return; }
-  const data = new FormData(form);
-  const reader = new FileReader();
-  reader.onload = () => {
-    const product = {
-      id: Date.now(),
-      name: String(data.get("title")).trim(),
-      category: String(data.get("category")),
-      price: Number(data.get("price")),
-      maker: String(data.get("maker")).trim(),
-      location: String(data.get("location")).trim(),
-      description: String(data.get("description")).trim(),
-      image: reader.result
-    };
-    if (!product.name || !product.maker || !product.location || !product.description || !Number.isFinite(product.price) || product.price < 1) {
-      message.textContent = "Please fill in every field and enter a valid price."; return;
-    }
-    products.unshift(product);
-    try {
-      saveProducts();
-      renderProducts();
-      renderMyListings();
-      form.reset();
-      message.textContent = "Your artwork has been published to Explore Art!";
-      showToast("Artwork published successfully.");
-      document.getElementById("shop").scrollIntoView({ behavior: "smooth" });
-    } catch (error) {
-      products = products.filter((item) => item.id !== product.id);
-      message.textContent = "This browser may be out of storage. Try a smaller image or remove an old listing.";
-    }
-  };
-  reader.onerror = () => { message.textContent = "The image could not be read. Please try another file."; };
-  reader.readAsDataURL(file);
-});
-
-document.getElementById("my-listings").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-delete-product]");
-  if (!button) return;
-  const id = Number(button.dataset.deleteProduct);
-  products = products.filter((product) => product.id !== id);
-  cart = cart.filter((item) => item.id !== id);
-  saveProducts(); saveCart(); renderProducts(); renderMyListings();
-  document.getElementById("product-form-message").textContent = "Listing removed from this browser.";
-});
-
-document.getElementById("menu-toggle").addEventListener("click", () => {
-  const nav = document.getElementById("nav-links");
-  const isOpen = nav.classList.toggle("open");
-  document.getElementById("menu-toggle").setAttribute("aria-expanded", String(isOpen));
-  document.getElementById("menu-toggle").textContent = isOpen ? "×" : "☰";
-});
-document.querySelectorAll("#nav-links a").forEach((link) => link.addEventListener("click", () => {
-  document.getElementById("nav-links").classList.remove("open");
-  document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
-  document.getElementById("menu-toggle").textContent = "☰";
-}));
-document.getElementById("year").textContent = new Date().getFullYear();
-renderProducts(); renderMyListings(); saveCart();
-
-(() => {
-  const $ = (id) => document.getElementById(id);
-  const grid = $("product-grid");
-  if (!grid) return;
-
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  const cartButton = $("open-cart");
-  const cartCount = $("cart-count");
-  const resultCount = $("result-count");
-  const emptyState = $("empty-state");
-  const toast = (message) => { if (typeof showToast === "function") showToast(message); };
-
-  const FAV_KEY = "kenyanArtisansFavourites";
-  let favourites = new Set();
-  try { favourites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]").map(String)); } catch (error) { favourites = new Set(); }
-  let favouritesOnly = false;
-
-  function saveFavourites() {
-    try { localStorage.setItem(FAV_KEY, JSON.stringify([...favourites])); } catch (error) {}
+  if (!form || !summary || !total) {
+    showToast("Checkout form is missing from this page.");
+    return;
   }
 
-  function syncHearts() {
-    grid.querySelectorAll("[data-wishlist]").forEach((button) => {
-      const on = favourites.has(String(button.dataset.wishlist));
-      if (button.getAttribute("aria-pressed") !== String(on)) {
-        button.classList.add("restored");
-        button.setAttribute("aria-pressed", String(on));
-      }
-      button.textContent = on ? "♥" : "♡";
-    });
+  const lines = cartLines();
+
+  if (lines.length === 0) {
+    showToast("Add some artwork to your basket first.");
+    return;
   }
 
-  function applyFavouriteFilter() {
-    const cards = [...grid.querySelectorAll(".product-card")];
-    cards.forEach((card) => {
-      card.hidden = favouritesOnly && !favourites.has(String(card.dataset.productId));
-    });
-    if (!favouritesOnly) return;
-    const shown = cards.filter((card) => !card.hidden).length;
-    if (resultCount) resultCount.textContent = `${shown} favourite ${shown === 1 ? "piece" : "pieces"}`;
-    if (emptyState) {
-      if (shown === 0) {
-        emptyState.textContent = "No favourites here yet. Tap the heart on any artwork to save it.";
-        emptyState.classList.remove("hidden");
-      } else {
-        emptyState.classList.add("hidden");
-      }
-    }
-  }
+  summary.innerHTML = lines.map(({ item, product }) => {
+    const quantity = Number(item.quantity || 1);
+    const title = getProductName(product);
 
-  grid.addEventListener("click", (event) => {
-    const heart = event.target.closest("[data-wishlist]");
-    if (!heart) return;
-    event.stopPropagation();
-    const id = String(heart.dataset.wishlist);
-    heart.classList.remove("restored");
-    if (favourites.has(id)) {
-      favourites.delete(id);
-      heart.setAttribute("aria-pressed", "false");
-      heart.textContent = "♡";
-      toast("Removed from your favourites.");
-    } else {
-      favourites.add(id);
-      heart.setAttribute("aria-pressed", "true");
-      heart.textContent = "♥";
-      toast("Saved to your favourites.");
-    }
-    saveFavourites();
-    updateFavouriteBadge();
-    if (favouritesOnly) setTimeout(applyFavouriteFilter, 350);
-  }, true);
+    const image = product.image
+      ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(title)}" style="width:68px;height:68px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+      : `<span aria-hidden="true" style="width:68px;height:68px;display:grid;place-items:center;background:#eee5d5;border-radius:6px;flex-shrink:0;">✳</span>`;
 
-  const filters = $("category-filters");
-  let favouriteButton = null;
-  if (filters) {
-    favouriteButton = document.createElement("button");
-    favouriteButton.type = "button";
-    favouriteButton.className = "filter fav-filter";
-    favouriteButton.setAttribute("aria-pressed", "false");
-    favouriteButton.innerHTML = '♥ Favourites <span class="fav-badge" aria-hidden="true">0</span>';
-    filters.appendChild(favouriteButton);
-    favouriteButton.addEventListener("click", () => {
-      favouritesOnly = !favouritesOnly;
-      favouriteButton.setAttribute("aria-pressed", String(favouritesOnly));
-      favouriteButton.classList.toggle("active", favouritesOnly);
-      const searchInput = $("product-search");
-      if (searchInput) searchInput.dispatchEvent(new Event("input"));
-      else applyFavouriteFilter();
-    });
-  }
+    return `
+      <li class="checkout-summary-item" style="display:flex;align-items:center;gap:12px;padding:12px 0;">
+        ${image}
 
-  function updateFavouriteBadge() {
-    if (!favouriteButton) return;
-    const badge = favouriteButton.querySelector(".fav-badge");
-    badge.textContent = favourites.size;
-    badge.classList.remove("bump");
-    void badge.offsetWidth;
-    badge.classList.add("bump");
-    badge.classList.toggle("has-items", favourites.size > 0);
-  }
+        <div style="flex:1;min-width:0;">
+          <strong style="display:block;">
+            ${escapeHtml(title)}
+          </strong>
 
-  new MutationObserver(() => { syncHearts(); applyFavouriteFilter(); }).observe(grid, { childList: true });
-  syncHearts();
-  updateFavouriteBadge();
-
-  function flyToCart(source) {
-    if (reduced || !source || !cartButton) return;
-    const from = source.getBoundingClientRect();
-    const to = cartButton.getBoundingClientRect();
-    if (!from.width || !to.width) return;
-    const clone = document.createElement("img");
-    clone.src = source.currentSrc || source.src;
-    clone.alt = "";
-    clone.className = "fly-clone";
-    Object.assign(clone.style, {
-      left: `${from.left}px`,
-      top: `${from.top}px`,
-      width: `${from.width}px`,
-      height: `${from.height}px`
-    });
-    document.body.appendChild(clone);
-    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
-    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-    const animation = clone.animate([
-      { transform: "translate(0, 0) scale(1)", opacity: 1, borderRadius: "14px" },
-      { transform: `translate(${dx * 0.55}px, ${dy * 0.55 - 90}px) scale(.38)`, opacity: .95, borderRadius: "50%", offset: .55 },
-      { transform: `translate(${dx}px, ${dy}px) scale(.04)`, opacity: .15, borderRadius: "50%" }
-    ], { duration: 900, easing: "cubic-bezier(.5, 0, .2, 1)" });
-    animation.onfinish = () => clone.remove();
-    animation.oncancel = () => clone.remove();
-  }
-
-  grid.addEventListener("click", (event) => {
-    const add = event.target.closest("[data-add]");
-    if (!add) return;
-    flyToCart(add.closest(".product-card")?.querySelector("img"));
-  }, true);
-
-  const modalAdd = $("modal-add");
-  if (modalAdd) modalAdd.addEventListener("click", () => flyToCart($("modal-image")), true);
-
-  if (cartCount) {
-    new MutationObserver(() => {
-      cartCount.classList.remove("bump");
-      void cartCount.offsetWidth;
-      cartCount.classList.add("bump");
-      if (cartButton) {
-        cartButton.classList.remove("shake");
-        void cartButton.offsetWidth;
-        cartButton.classList.add("shake");
-      }
-    }).observe(cartCount, { childList: true, characterData: true, subtree: true });
-  }
-
-  if (finePointer && !reduced) {
-    grid.addEventListener("pointermove", (event) => {
-      if (event.pointerType !== "mouse") return;
-      const card = event.target.closest(".product-card");
-      if (!card) return;
-      const rect = card.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width;
-      const y = (event.clientY - rect.top) / rect.height;
-      card.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
-      card.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
-      card.style.setProperty("--ry", `${((x - 0.5) * 9).toFixed(2)}deg`);
-      card.style.setProperty("--rx", `${((0.5 - y) * 9).toFixed(2)}deg`);
-    });
-    grid.addEventListener("pointerout", (event) => {
-      const card = event.target.closest(".product-card");
-      if (!card || card.contains(event.relatedTarget)) return;
-      card.style.setProperty("--rx", "0deg");
-      card.style.setProperty("--ry", "0deg");
-    });
-
-    document.querySelectorAll(".hero-actions .button, .header-actions .button").forEach((button) => {
-      button.addEventListener("pointermove", (event) => {
-        const rect = button.getBoundingClientRect();
-        const x = (event.clientX - rect.left - rect.width / 2) * 0.22;
-        const y = (event.clientY - rect.top - rect.height / 2) * 0.28;
-        button.style.translate = `${x.toFixed(1)}px ${y.toFixed(1)}px`;
-      });
-      button.addEventListener("pointerleave", () => { button.style.translate = ""; });
-    });
-  }
-
-  document.addEventListener("pointerdown", (event) => {
-    const button = event.target.closest(".button");
-    if (!button) return;
-    const rect = button.getBoundingClientRect();
-    button.style.setProperty("--px", `${((event.clientX - rect.left) / rect.width) * 100}%`);
-    button.style.setProperty("--py", `${((event.clientY - rect.top) / rect.height) * 100}%`);
-  });
-
-  if (!reduced && "IntersectionObserver" in window) {
-    const sections = document.querySelectorAll("section:not(.hero)");
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("in");
-        observer.unobserve(entry.target);
-      });
-    }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
-    sections.forEach((section) => {
-      section.classList.add("js-reveal");
-      observer.observe(section);
-    });
-  }
-
-  const toTop = document.createElement("button");
-  toTop.type = "button";
-  toTop.className = "to-top";
-  toTop.setAttribute("aria-label", "Back to top");
-  toTop.innerHTML = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle class="track" cx="20" cy="20" r="17"/><circle class="bar" cx="20" cy="20" r="17" pathLength="100"/></svg><span aria-hidden="true">↑</span>';
-  document.body.appendChild(toTop);
-  const bar = toTop.querySelector(".bar");
-  let ticking = false;
-  function onScroll() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-      bar.style.strokeDashoffset = String(100 - progress * 100);
-      toTop.classList.toggle("visible", window.scrollY > 600);
-      ticking = false;
-    });
-  }
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-  toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }));
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
-    const target = event.target;
-    if (target.matches("input, textarea, select, [contenteditable]")) return;
-    if (document.querySelector(".modal-backdrop:not(.hidden)")) return;
-    const search = $("product-search");
-    const shop = $("shop");
-    if (!search) return;
-    event.preventDefault();
-    if (shop) shop.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
-    search.focus({ preventScroll: true });
-  });
-
-  if (document.startViewTransition && !reduced && typeof window.applyTheme === "function") {
-    let originX = window.innerWidth / 2;
-    let originY = 0;
-    document.addEventListener("pointerdown", (event) => { originX = event.clientX; originY = event.clientY; }, true);
-    const original = window.applyTheme;
-    window.applyTheme = (theme) => {
-      if (document.documentElement.dataset.theme === theme) { original(theme); return; }
-      const radius = Math.hypot(Math.max(originX, window.innerWidth - originX), Math.max(originY, window.innerHeight - originY));
-      const transition = document.startViewTransition(() => original(theme));
-      transition.ready.then(() => {
-        document.documentElement.animate(
-          { clipPath: [`circle(0px at ${originX}px ${originY}px)`, `circle(${radius}px at ${originX}px ${originY}px)`] },
-          { duration: 800, easing: "cubic-bezier(.7, 0, .2, 1)", pseudoElement: "::view-transition-new(root)" }
-        );
-      }).catch(() => {});
-    };
-  }
-})();
-
-(() => {
-  const $ = (id) => document.getElementById(id);
-  const grid = $("product-grid");
-  const wishGrid = $("wishlist-grid");
-  if (!grid) return;
-
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  const cartButton = $("open-cart");
-  const cartCount = $("cart-count");
-  const grids = [grid, wishGrid].filter(Boolean);
-  const toast = (message) => { if (typeof showToast === "function") showToast(message); };
-
-  const FAV_KEY = "kenyanArtisansFavourites";
-  let favourites = new Set();
-  try { favourites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]").map(String)); } catch (error) { favourites = new Set(); }
-  let wishSignature = null;
-
-  function saveFavourites() {
-    try { localStorage.setItem(FAV_KEY, JSON.stringify([...favourites])); } catch (error) {}
-  }
-
-  function bump(element) {
-    if (!element) return;
-    element.classList.remove("bump");
-    void element.offsetWidth;
-    element.classList.add("bump");
-  }
-
-  function savedProducts() {
-    return products.filter((product) => favourites.has(String(product.id)));
-  }
-
-  function syncHearts() {
-    document.querySelectorAll("[data-wishlist]").forEach((button) => {
-      const on = favourites.has(String(button.dataset.wishlist));
-      if (button.getAttribute("aria-pressed") !== String(on)) {
-        button.classList.add("restored");
-        button.setAttribute("aria-pressed", String(on));
-      }
-      button.textContent = on ? "♥" : "♡";
-    });
-  }
-
-  function renderWishlist(force) {
-    const saved = savedProducts();
-    const signature = saved.map((product) => product.id).join(",");
-    const count = $("wishlist-count");
-    const total = $("wishlist-total");
-    const empty = $("wishlist-empty");
-    if (count && count.textContent !== String(saved.length)) {
-      count.textContent = saved.length;
-      bump(count);
-    }
-    if (total) total.textContent = `${saved.length} saved ${saved.length === 1 ? "piece" : "pieces"}`;
-    if (empty) empty.classList.toggle("hidden", saved.length > 0);
-    if (!wishGrid || (!force && signature === wishSignature)) return;
-    wishSignature = signature;
-    wishGrid.innerHTML = saved.map((product) => `
-      <article class="product-card" data-product-id="${product.id}" tabindex="0" aria-label="View ${escapeHtml(product.name)}">
-        <div class="product-image-wrap">
-          <img src="${product.image}" alt="${escapeHtml(product.name)}" loading="lazy">
-          <span class="product-tag">SAVED</span>
-          <button class="wishlist-toggle restored" data-wishlist="${product.id}" aria-label="Remove ${escapeHtml(product.name)} from favourites" aria-pressed="true">♥</button>
-          <button class="quick-add" data-add="${product.id}" aria-label="Add ${escapeHtml(product.name)} to cart">+</button>
+          <small style="display:block;opacity:.75;margin-top:4px;">
+            ${quantity} × ${formatPrice(product.price)}
+            ${product.category ? ` · ${escapeHtml(product.category)}` : ""}
+          </small>
         </div>
-        <div class="product-info">
-          <span class="product-category">${escapeHtml(product.category)}</span>
-          <h3>${escapeHtml(product.name)}</h3>
-          <span class="product-maker">By ${escapeHtml(product.maker)}</span>
-          <div class="product-price-row"><strong class="product-price">${formatPrice(product.price)}</strong><span class="product-location">${escapeHtml(product.location.split(",")[0])}</span></div>
-        </div>
-      </article>`).join("");
-  }
 
-  function toggleFavourite(button) {
-    const id = String(button.dataset.wishlist);
-    const product = products.find((item) => String(item.id) === id);
-    button.classList.remove("restored");
-    if (favourites.has(id)) {
-      favourites.delete(id);
-      toast("Removed from your wishlist.");
-    } else {
-      favourites.add(id);
-      toast(product ? `${product.name} saved to your wishlist.` : "Saved to your wishlist.");
-    }
-    saveFavourites();
-    document.querySelectorAll(`[data-wishlist="${id}"]`).forEach((heart) => {
-      const on = favourites.has(id);
-      heart.classList.remove("restored");
-      heart.setAttribute("aria-pressed", String(on));
-      heart.textContent = on ? "♥" : "♡";
-    });
-    renderWishlist(false);
-  }
+        <strong>
+          ${formatPrice(Number(product.price || 0) * quantity)}
+        </strong>
+      </li>
+    `;
+  }).join("");
 
-  function flyToCart(source) {
-    if (reduced || !source || !cartButton) return;
-    const from = source.getBoundingClientRect();
-    const to = cartButton.getBoundingClientRect();
-    if (!from.width || !to.width) return;
-    const clone = document.createElement("img");
-    clone.src = source.currentSrc || source.src;
-    clone.alt = "";
-    clone.className = "fly-clone";
-    Object.assign(clone.style, {
-      left: `${from.left}px`,
-      top: `${from.top}px`,
-      width: `${from.width}px`,
-      height: `${from.height}px`
-    });
-    document.body.appendChild(clone);
-    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
-    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-    const animation = clone.animate([
-      { transform: "translate(0, 0) scale(1)", opacity: 1, borderRadius: "14px" },
-      { transform: `translate(${dx * 0.55}px, ${dy * 0.55 - 90}px) scale(.38)`, opacity: .95, borderRadius: "50%", offset: .55 },
-      { transform: `translate(${dx}px, ${dy}px) scale(.04)`, opacity: .15, borderRadius: "50%" }
-    ], { duration: 900, easing: "cubic-bezier(.5, 0, .2, 1)" });
-    animation.onfinish = () => clone.remove();
-    animation.oncancel = () => clone.remove();
-  }
+  total.textContent = formatPrice(cartTotalAmount());
 
-  grids.forEach((container) => {
-    container.addEventListener("click", (event) => {
-      const heart = event.target.closest("[data-wishlist]");
-      if (heart) {
-        event.stopPropagation();
-        toggleFavourite(heart);
-        return;
-      }
-      const add = event.target.closest("[data-add]");
-      if (add) flyToCart(add.closest(".product-card")?.querySelector("img"));
-    }, true);
-  });
-
-  if (wishGrid) {
-    wishGrid.addEventListener("click", (event) => {
-      const add = event.target.closest("[data-add]");
-      if (add) { addToCart(add.dataset.add); return; }
-      const card = event.target.closest("[data-product-id]");
-      if (card) showProduct(card.dataset.productId);
-    });
-    wishGrid.addEventListener("keydown", (event) => {
-      if ((event.key === "Enter" || event.key === " ") && event.target.matches(".product-card")) {
-        event.preventDefault();
-        showProduct(event.target.dataset.productId);
-      }
-    });
-  }
-
-  new MutationObserver(() => { syncHearts(); renderWishlist(false); }).observe(grid, { childList: true });
-  syncHearts();
-  renderWishlist(true);
-
-  const modalAdd = $("modal-add");
-  if (modalAdd) modalAdd.addEventListener("click", () => flyToCart($("modal-image")), true);
-
-  if (cartCount) {
-    new MutationObserver(() => {
-      bump(cartCount);
-      if (cartButton) {
-        cartButton.classList.remove("shake");
-        void cartButton.offsetWidth;
-        cartButton.classList.add("shake");
-      }
-    }).observe(cartCount, { childList: true, characterData: true, subtree: true });
-  }
-
-  if (finePointer && !reduced) {
-    grids.forEach((container) => {
-      container.addEventListener("pointermove", (event) => {
-        if (event.pointerType !== "mouse") return;
-        const card = event.target.closest(".product-card");
-        if (!card) return;
-        const rect = card.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width;
-        const y = (event.clientY - rect.top) / rect.height;
-        card.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
-        card.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
-        card.style.setProperty("--ry", `${((x - 0.5) * 9).toFixed(2)}deg`);
-        card.style.setProperty("--rx", `${((0.5 - y) * 9).toFixed(2)}deg`);
-      });
-      container.addEventListener("pointerout", (event) => {
-        const card = event.target.closest(".product-card");
-        if (!card || card.contains(event.relatedTarget)) return;
-        card.style.setProperty("--rx", "0deg");
-        card.style.setProperty("--ry", "0deg");
-      });
-    });
-
-    document.querySelectorAll(".hero-actions .button, .header-actions .button").forEach((button) => {
-      button.addEventListener("pointermove", (event) => {
-        const rect = button.getBoundingClientRect();
-        const x = (event.clientX - rect.left - rect.width / 2) * 0.22;
-        const y = (event.clientY - rect.top - rect.height / 2) * 0.28;
-        button.style.translate = `${x.toFixed(1)}px ${y.toFixed(1)}px`;
-      });
-      button.addEventListener("pointerleave", () => { button.style.translate = ""; });
-    });
-  }
-
-  document.addEventListener("pointerdown", (event) => {
-    const button = event.target.closest(".button");
-    if (!button) return;
-    const rect = button.getBoundingClientRect();
-    button.style.setProperty("--px", `${((event.clientX - rect.left) / rect.width) * 100}%`);
-    button.style.setProperty("--py", `${((event.clientY - rect.top) / rect.height) * 100}%`);
-  });
-
-  if (!reduced && "IntersectionObserver" in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("in");
-        observer.unobserve(entry.target);
-      });
-    }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
-    document.querySelectorAll("section:not(.hero)").forEach((section) => {
-      section.classList.add("js-reveal");
-      observer.observe(section);
-    });
-  }
-
-  const toTop = document.createElement("button");
-  toTop.type = "button";
-  toTop.className = "to-top";
-  toTop.setAttribute("aria-label", "Back to top");
-  toTop.innerHTML = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle class="track" cx="20" cy="20" r="17"/><circle class="bar" cx="20" cy="20" r="17" pathLength="100"/></svg><span aria-hidden="true">↑</span>';
-  document.body.appendChild(toTop);
-  const bar = toTop.querySelector(".bar");
-  let ticking = false;
-  function onScroll() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-      bar.style.strokeDashoffset = String(100 - progress * 100);
-      toTop.classList.toggle("visible", window.scrollY > 600);
-      ticking = false;
-    });
-  }
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-  toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }));
-
-  const navLinks = [...document.querySelectorAll("#nav-links a[href^='#']")];
-  if (navLinks.length && "IntersectionObserver" in window) {
-    const targets = navLinks.map((link) => document.querySelector(link.getAttribute("href"))).filter(Boolean);
-    const spy = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        navLinks.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === `#${entry.target.id}`));
-      });
-    }, { rootMargin: "-45% 0px -50% 0px" });
-    targets.forEach((target) => spy.observe(target));
-  }
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
-    if (event.target.matches("input, textarea, select, [contenteditable]")) return;
-    if (document.querySelector(".modal-backdrop:not(.hidden)")) return;
-    const search = $("product-search");
-    const shop = $("shop");
-    if (!search) return;
-    event.preventDefault();
-    if (shop) shop.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
-    search.focus({ preventScroll: true });
-  });
-
-  if (document.startViewTransition && !reduced && typeof window.applyTheme === "function") {
-    let originX = window.innerWidth / 2;
-    let originY = 0;
-    document.addEventListener("pointerdown", (event) => { originX = event.clientX; originY = event.clientY; }, true);
-    const original = window.applyTheme;
-    window.applyTheme = (theme) => {
-      if (document.documentElement.dataset.theme === theme) { original(theme); return; }
-      const radius = Math.hypot(Math.max(originX, window.innerWidth - originX), Math.max(originY, window.innerHeight - originY));
-      const transition = document.startViewTransition(() => original(theme));
-      transition.ready.then(() => {
-        document.documentElement.animate(
-          { clipPath: [`circle(0px at ${originX}px ${originY}px)`, `circle(${radius}px at ${originX}px ${originY}px)`] },
-          { duration: 800, easing: "cubic-bezier(.7, 0, .2, 1)", pseudoElement: "::view-transition-new(root)" }
-        );
-      }).catch(() => {});
-    };
-  }
-})();
-
-renderProducts(); renderMyListings(); saveCart();
-
-(() => {
-  const studio = document.getElementById("artist-studio");
-  const form = document.getElementById("product-form");
-  if (!studio || !form) return;
-
-  function goToStudio() {
-    if (typeof closeModals === "function") closeModals();
-    const nav = document.getElementById("nav-links");
-    const menu = document.getElementById("menu-toggle");
-    if (nav) nav.classList.remove("open");
-    if (menu) { menu.setAttribute("aria-expanded", "false"); menu.textContent = "☰"; }
-
-    studio.scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => {
-      const firstField = form.querySelector("input[name='title']");
-      if (firstField) firstField.focus({ preventScroll: true });
-      form.classList.remove("studio-spotlight");
-      void form.offsetWidth;
-      form.classList.add("studio-spotlight");
-    }, 700);
-  }
-
-  document.addEventListener("click", (event) => {
-    if (!event.target.closest("#seller-open, #hero-seller, #artisan-seller, #cta-seller")) return;
-    event.preventDefault();
-    event.stopPropagation();
-    goToStudio();
-  }, true);
-
-  document.querySelectorAll('a[href="#seller"]').forEach((link) => link.setAttribute("href", "#artist-studio"));
-})();
-
-(() => {
-  const ORDER_WHATSAPP = "254700000000";
-
-  const modal = document.getElementById("checkout-modal");
-  const form = document.getElementById("checkout-form");
-  const summary = document.getElementById("checkout-summary");
-  const totalEl = document.getElementById("checkout-total");
-  const message = document.getElementById("checkout-message");
-  if (!modal || !form) return;
-
-  const SAVED_KEY = "kenyanArtisansCustomer";
-
-  function cartLines() {
-    return cart
-      .map((item) => ({ item, product: products.find((p) => p.id === item.id) }))
-      .filter((line) => line.product);
-  }
-
-  function cartTotal() {
-    return cartLines().reduce((sum, { item, product }) => sum + product.price * item.quantity, 0);
-  }
-
-  function openCheckout() {
-    const lines = cartLines();
-    summary.innerHTML = lines.map(({ item, product }) =>
-      `<li><span>${item.quantity} × ${escapeHtml(product.name)}</span><strong>${formatPrice(product.price * item.quantity)}</strong></li>`
-    ).join("");
-    totalEl.textContent = formatPrice(cartTotal());
+  if (message) {
     message.textContent = "";
-    try {
-      const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || "{}");
-      ["name", "phone", "town"].forEach((field) => {
-        if (saved[field] && !form.elements[field].value) form.elements[field].value = saved[field];
-      });
-    } catch (error) {}
-    closeModals();
-    openModal("checkout-modal");
-    setTimeout(() => {
-      const firstEmpty = [...form.elements].find((el) => el.name && !el.value);
-      (firstEmpty || form.elements.name).focus({ preventScroll: true });
-    }, 450);
   }
 
-  document.addEventListener("click", (event) => {
-    if (!event.target.closest("#checkout-button")) return;
-    event.stopPropagation();
-    if (cartLines().length === 0) { showToast("Add some artwork to your basket first."); return; }
-    openCheckout();
-  }, true);
+  const saved = readStorage(CUSTOMER_KEY, {});
 
-  function normalisePhone(value) {
-    const digits = value.replace(/[\s\-()]/g, "");
-    return /^(?:\+?254|0)[17]\d{8}$/.test(digits) ? digits : null;
-  }
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const data = new FormData(form);
-    const name = String(data.get("name")).trim();
-    const phone = normalisePhone(String(data.get("phone")));
-    const town = String(data.get("town")).trim();
-    const note = String(data.get("note")).trim();
-
-    if (!name || !town) { message.textContent = "Please enter your name and delivery town."; return; }
-    if (!phone) { message.textContent = "Please enter a valid Kenyan phone number, like 0712 345 678."; return; }
-
-    const lines = cartLines();
-    if (lines.length === 0) { message.textContent = "Your basket is empty."; return; }
-
-    const text = [
-      "Hi! I'd like to order from Kenyan Artisans:",
-      "",
-      ...lines.map(({ item, product }) => `• ${item.quantity} × ${product.name} (by ${product.maker}): ${formatPrice(product.price * item.quantity)}`),
-      "",
-      `Total: ${formatPrice(cartTotal())}`,
-      "",
-      `Name: ${name}`,
-      `Phone: ${phone}`,
-      `Delivery town: ${town}`,
-      note ? `Note: ${note}` : ""
-    ].filter((line, index, all) => line !== "" || (index > 0 && all[index - 1] !== "")).join("\n").trim();
-
-    try { localStorage.setItem(SAVED_KEY, JSON.stringify({ name, phone: String(data.get("phone")).trim(), town })); } catch (error) {}
-
-    const url = `https://wa.me/${ORDER_WHATSAPP}?text=${encodeURIComponent(text)}`;
-    const opened = window.open(url, "_blank", "noopener");
-    if (!opened) window.location.href = url;
-
-    cart = [];
-    saveCart();
-    form.elements.note.value = "";
-    closeModals();
-    showToast("Order ready. Press Send in WhatsApp to finish.");
+  ["name", "phone", "town"].forEach((field) => {
+    if (
+      saved[field] &&
+      form.elements[field] &&
+      !form.elements[field].value
+    ) {
+      form.elements[field].value = saved[field];
+    }
   });
-})();
+
+  closeModals();
+  openModal("checkout-modal");
+
+  window.setTimeout(() => {
+    const firstEmpty = [...form.elements].find(
+      (element) => element.name && !element.value
+    );
+
+    (firstEmpty || form.elements.name)?.focus({
+      preventScroll: true
+    });
+  }, 100);
+}
+
+$("checkout-button")?.addEventListener("click", () => {
+  if (cartLines().length === 0) {
+    showToast("Add some artwork to your basket first.");
+    return;
+  }
+
+  openCheckout();
+});
+
+// Send the order through WhatsApp.
+const checkoutForm = $("checkout-form");
+
+checkoutForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const message = $("checkout-message");
+  const formData = new FormData(checkoutForm);
+
+  const name = String(formData.get("name") || "").trim();
+  const phoneRaw = String(formData.get("phone") || "").trim();
+  const town = String(formData.get("town") || "").trim();
+  const note = String(formData.get("note") || "").trim();
+
+  const phoneDigits = phoneRaw.replace(/[\s\-()]/g, "");
+
+  if (!name || !town) {
+    if (message) {
+      message.textContent = "Please enter your name and delivery town.";
+    }
+
+    return;
+  }
+
+  if (!/^(?:\+?254|0)[17]\d{8}$/.test(phoneDigits)) {
+    if (message) {
+      message.textContent =
+        "Enter a valid Kenyan phone number, such as 0712 345 678.";
+    }
+
+    return;
+  }
+
+  const lines = cartLines();
+
+  if (!lines.length) {
+    if (message) {
+      message.textContent = "Your basket is empty.";
+    }
+
+    return;
+  }
+
+  const orderText = [
+    "Hi! I'd like to order from Kenyan Artisans:",
+    "",
+    ...lines.map(({ item, product }) =>
+      `${Number(item.quantity || 1)} × ${getProductName(product)} (by ${product.maker || "Kenyan artisan"}): ${formatPrice(Number(product.price || 0) * Number(item.quantity || 1))}`
+    ),
+    "",
+    `Total: ${formatPrice(cartTotalAmount())}`,
+    "",
+    `Name: ${name}`,
+    `Phone: ${phoneRaw}`,
+    `Delivery town: ${town}`,
+    note ? `Note: ${note}` : ""
+  ]
+    .filter((line, index, all) =>
+      line !== "" || (index > 0 && all[index - 1] !== "")
+    )
+    .join("\n")
+    .trim();
+
+  writeStorage(CUSTOMER_KEY, {
+    name,
+    phone: phoneRaw,
+    town
+  });
+
+  const whatsappUrl =
+    `https://wa.me/${ORDER_WHATSAPP}?text=${encodeURIComponent(orderText)}`;
+
+  const opened = window.open(whatsappUrl, "_blank");
+
+  if (!opened) {
+    window.location.href = whatsappUrl;
+  }
+
+  cart = [];
+  saveCart();
+
+  checkoutForm.elements.note.value = "";
+
+  closeModals();
+
+  showToast("Order ready. Press Send in WhatsApp to finish.");
+});
+
+// Modal close buttons and background clicks.
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-modal]")) {
+    closeModals();
+  }
+});
+
+document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+  backdrop.addEventListener("click", (event) => {
+    if (event.target === backdrop) {
+      closeModals();
+    }
+  });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeModals();
+  }
+
+  if (
+    event.key === "/" &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !event.target.matches("input, textarea, select, [contenteditable]") &&
+    !document.querySelector(".modal-backdrop:not(.hidden)")
+  ) {
+    if (searchInput) {
+      event.preventDefault();
+
+      $("shop")?.scrollIntoView({
+        behavior: reducedMotion ? "auto" : "smooth"
+      });
+
+      searchInput.focus({ preventScroll: true });
+    }
+  }
+});
+
+// All seller buttons lead to the seller dashboard.
+function goToSellerDashboard() {
+  window.location.href = "seller.html";
+}
+
+[
+  "seller-open",
+  "hero-seller",
+  "artisan-seller",
+  "cta-seller",
+  "go-to-studio"
+].forEach((id) => {
+  $(id)?.addEventListener("click", goToSellerDashboard);
+});
+
+// Mobile navigation.
+$("menu-toggle")?.addEventListener("click", () => {
+  const nav = $("nav-links");
+  const menu = $("menu-toggle");
+
+  if (!nav || !menu) return;
+
+  const isOpen = nav.classList.toggle("open");
+
+  menu.setAttribute("aria-expanded", String(isOpen));
+  menu.textContent = isOpen ? "×" : "☰";
+});
+
+document.querySelectorAll("#nav-links a").forEach((link) => {
+  link.addEventListener("click", () => {
+    $("nav-links")?.classList.remove("open");
+    $("menu-toggle")?.setAttribute("aria-expanded", "false");
+
+    if ($("menu-toggle")) {
+      $("menu-toggle").textContent = "☰";
+    }
+  });
+});
+
+// Refresh products if another same-origin tab updates localStorage.
+window.addEventListener("storage", (event) => {
+  if (event.key === PRODUCT_KEY) {
+    try {
+      const updated = JSON.parse(event.newValue || "[]");
+      localProducts = Array.isArray(updated) ? updated : [];
+    } catch (error) {
+      localProducts = [];
+    }
+
+    products = [...remoteProducts, ...localProducts];
+
+    renderProducts();
+    saveCart();
+  }
+
+  if (event.key === CART_KEY) {
+    cart = readStorage(CART_KEY, []);
+
+    if (!Array.isArray(cart)) {
+      cart = [];
+    }
+
+    saveCart();
+  }
+});
+
+// Footer year.
+if ($("year")) {
+  $("year").textContent = new Date().getFullYear();
+}
+
+// Section reveal animations.
+if (!reducedMotion && "IntersectionObserver" in window) {
+  const sections = document.querySelectorAll("section:not(.hero)");
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+
+      entry.target.classList.add("in");
+      observer.unobserve(entry.target);
+    });
+  }, {
+    threshold: 0.08,
+    rootMargin: "0px 0px -6% 0px"
+  });
+
+  sections.forEach((section) => {
+    section.classList.add("js-reveal");
+    observer.observe(section);
+  });
+}
+
+// Back-to-top button.
+if (!$("to-top")) {
+  const toTop = document.createElement("button");
+
+  toTop.type = "button";
+  toTop.className = "to-top";
+  toTop.id = "to-top";
+  toTop.setAttribute("aria-label", "Back to top");
+
+  toTop.innerHTML = `
+    <svg viewBox="0 0 40 40" aria-hidden="true">
+      <circle class="track" cx="20" cy="20" r="17"/>
+      <circle class="bar" cx="20" cy="20" r="17" pathLength="100"/>
+    </svg>
+    <span aria-hidden="true">↑</span>
+  `;
+
+  document.body.appendChild(toTop);
+
+  const bar = toTop.querySelector(".bar");
+  let ticking = false;
+
+  function onScroll() {
+    if (ticking) return;
+
+    ticking = true;
+
+    requestAnimationFrame(() => {
+      const max =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+      const progress =
+        max > 0 ? Math.min(1, window.scrollY / max) : 0;
+
+      bar.style.strokeDashoffset = String(100 - progress * 100);
+
+      toTop.classList.toggle("visible", window.scrollY > 600);
+
+      ticking = false;
+    });
+  }
+
+  window.addEventListener("scroll", onScroll, {
+    passive: true
+  });
+
+  onScroll();
+
+  toTop.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: reducedMotion ? "auto" : "smooth"
+    });
+  });
+}
+
+// Load the artwork published through the seller dashboard.
+async function loadPublicArtworks() {
+  if (typeof getSupabaseClient !== "function") {
+    remoteProductsLoaded = true;
+    products = [...localProducts];
+
+    renderProducts();
+    saveCart();
+    return;
+  }
+
+  try {
+    const client = getSupabaseClient();
+
+    const { data, error } = await client
+      .from("artworks")
+      .select(`
+        id,
+        seller_id,
+        title,
+        price,
+        category,
+        maker,
+        location,
+        description,
+        image_url,
+        image_path,
+        published,
+        created_at
+      `)
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    remoteProducts = (data || []).map((artwork) => ({
+      id: `remote-${artwork.id}`,
+      databaseId: artwork.id,
+      ownerId: artwork.seller_id,
+      name: artwork.title,
+      category: artwork.category || "Other",
+      price: Number(artwork.price),
+      maker: artwork.maker || "Kenyan artisan",
+      location: artwork.location || "Kenya",
+      description: artwork.description || "",
+      image: artwork.image_url || "",
+      imagePath: artwork.image_path || null,
+      tag: "ARTIST LISTING"
+    }));
+
+    products = [...remoteProducts, ...localProducts];
+    remoteProductsLoaded = true;
+
+    renderProducts();
+    saveCart();
+  } catch (error) {
+    console.error("Could not load published artwork:", error);
+
+    remoteProductsLoaded = true;
+    products = [...localProducts];
+
+    renderProducts();
+    saveCart();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadPublicArtworks, {
+  once: true
+});
+
+window.addEventListener("focus", loadPublicArtworks);
+
+// Initial display.
+renderProducts();
+saveCart();
