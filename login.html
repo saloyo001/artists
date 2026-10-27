@@ -21,6 +21,10 @@
 
       <label for="password">Password</label>
       <input type="password" id="password" name="password" autocomplete="current-password" required>
+      <label class="show-password-label">
+  <input type="checkbox" id="show-password">
+  Show password
+</label>
 
       <button type="submit">Log in</button>
       <p class="auth-message" id="login-message" aria-live="polite"></p>
@@ -29,5 +33,13 @@
       <a href="index.html">Back to the marketplace</a>
     </form>
   </main>
+   <script>
+  const passwordInput = document.getElementById("password");
+  const showPassword = document.getElementById("show-password");
+
+  showPassword.addEventListener("change", function () {
+    passwordInput.type = showPassword.checked ? "text" : "password";
+  });
+</script>
 </body>
 </html>
