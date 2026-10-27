@@ -97,7 +97,7 @@ async function updateAuthButton() {
       || user.user_metadata?.full_name
       || user.email;
 
-    link.textContent = "Log out (" + name + ")";
+    link.textContent = "Log out";
     link.href = "#";
     link.onclick = async (e) => {
       e.preventDefault();
