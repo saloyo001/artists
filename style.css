@@ -2226,3 +2226,29 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
         padding: 20px;
     }
 }
+/* Keep login and signup visible inside the mobile menu */
+@media (max-width: 850px) {
+    .nav-links.open {
+        display: flex !important;
+        flex-direction: column;
+        width: 100%;
+        gap: 0;
+        padding: 12px 0;
+        background: #fff;
+    }
+
+    .nav-links.open a {
+        display: block;
+        width: 100%;
+        padding: 13px 16px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #e9e1d7;
+    }
+
+    .nav-links.open a[href="login.html"],
+    .nav-links.open a[href="signup.html"],
+    .nav-links.open #dashboard-link {
+        font-weight: 700;
+        color: #08783e;
+    }
+}
