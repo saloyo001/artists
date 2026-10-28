@@ -182,7 +182,15 @@ function getCartProduct(item) {
     getProduct(snapshot?.id) ||
     getProduct(snapshot?.databaseId);
 
-  return liveProduct || snapshot;
+  // Always use the current database record when it exists.
+  if (liveProduct) return liveProduct;
+
+  // Once Supabase has confirmed the current catalogue,
+  // do not keep deleted artwork from an old cart snapshot.
+  if (remoteProductsVerified) return null;
+
+  // Keep old cart details while the first database request loads.
+  return snapshot;
 }
 
 function saveCart() {
@@ -707,7 +715,11 @@ $("search-focus")?.addEventListener("click", () => {
 });
 
 // Open basket.
-$("open-cart")?.addEventListener("click", () => {
+$("open-cart")?.addEventListener("click", async () => {
+  if (typeof getSupabaseClient === "function") {
+    await loadPublicArtworks();
+  }
+
   renderCart();
   openModal("cart-modal");
 });
@@ -877,13 +889,36 @@ function openCheckout() {
   }, 100);
 }
 
-$("checkout-button")?.addEventListener("click", () => {
+$("checkout-button")?.addEventListener("click", async () => {
+  const button = $("checkout-button");
+
+  if (button) button.disabled = true;
+
+  const refreshed = await loadPublicArtworks();
+
+  if (!refreshed) {
+    showToast(
+      "Could not verify artwork availability. Please try again."
+    );
+
+    if (button) button.disabled = false;
+    return;
+  }
+
   if (cartLines().length === 0) {
-    showToast("Add some artwork to your basket first.");
+    showToast(
+      "Your basket is empty or an item has been removed."
+    );
+
+    renderCart();
+
+    if (button) button.disabled = false;
     return;
   }
 
   openCheckout();
+
+  if (button) button.disabled = false;
 });
 
 // Send the order through WhatsApp.
@@ -960,12 +995,17 @@ checkoutForm?.addEventListener("submit", (event) => {
 
   const opened = window.open(whatsappUrl, "_blank");
 
-  if (!opened) {
-    window.location.href = whatsappUrl;
-  }
+// Clear the local basket after handing off the order request.
+cart = [];
+writeStorage(CART_KEY, []);
 
-  cart = [];
-  saveCart();
+if (cartCount) cartCount.textContent = "0";
+
+renderCart();
+
+if (!opened) {
+  window.location.href = whatsappUrl;
+}
 
   checkoutForm.elements.note.value = "";
 
@@ -1168,10 +1208,9 @@ async function loadPublicArtworks() {
   if (typeof getSupabaseClient !== "function") {
     remoteProductsLoaded = true;
     products = [...localProducts];
-
     renderProducts();
     saveCart();
-    return;
+    return false;
   }
 
   try {
@@ -1179,26 +1218,13 @@ async function loadPublicArtworks() {
 
     const { data, error } = await client
       .from("artworks")
-      .select(`
-        id,
-        seller_id,
-        title,
-        price,
-        category,
-        maker,
-        location,
-        description,
-        image_url,
-        image_path,
-        published,
-        created_at
-      `)
+      .select(
+        "id,seller_id,title,price,category,maker,location,description,image_url,image_path,published,created_at"
+      )
       .eq("published", true)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     remoteProducts = (data || []).map((artwork) => ({
       id: `remote-${artwork.id}`,
@@ -1215,19 +1241,47 @@ async function loadPublicArtworks() {
       tag: "ARTIST LISTING"
     }));
 
-    products = [...remoteProducts, ...localProducts];
-    remoteProductsLoaded = true;
+    // The shared database is the source of truth.
+    // Do not re-add old browser-only listings.
+    products = [...remoteProducts];
 
+    remoteProductsLoaded = true;
+    remoteProductsVerified = true;
+
+    // Remove favourites for products that no longer exist.
+    const currentIds = new Set(
+      products.map((product) => String(product.id))
+    );
+
+    favourites = new Set(
+      [...favourites].filter((id) => currentIds.has(String(id)))
+    );
+
+    saveFavourites();
     renderProducts();
+
+    // This also removes deleted products from old cart snapshots.
     saveCart();
+
+    return true;
   } catch (error) {
-    console.error("Could not load published artwork:", error);
-
     remoteProductsLoaded = true;
-    products = [...localProducts];
+
+    // Keep the last known catalogue if the network fails.
+    // Do not claim that availability was verified.
+    products = remoteProductsVerified
+      ? [...remoteProducts]
+      : [...localProducts];
 
     renderProducts();
     saveCart();
+
+    console.error(
+      "Could not refresh published artwork from Supabase:",
+      error
+    );
+
+    return false;
   }
 }
 
