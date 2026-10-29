@@ -84,6 +84,39 @@ if (loginForm) {
     });
 }
 
+const forgotPasswordLink = document.querySelector("#forgot-password");
+
+if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener("click", async function (event) {
+        event.preventDefault();
+
+        const email = document.querySelector("#email").value.trim();
+        const message = document.querySelector("#login-message");
+
+        if (!email) {
+            message.textContent = "Enter your email address first.";
+            return;
+        }
+
+        message.textContent = "Sending reset email...";
+
+        try {
+            const client = getSupabaseClient();
+
+            const { error } = await client.auth.resetPasswordForEmail(email, {
+                redirectTo: new URL("reset-password.html", window.location.href).href
+            });
+
+            if (error) {
+                throw error;
+            }
+
+            message.textContent = "Check your email for the password reset link.";
+        } catch (error) {
+            message.textContent = error.message || "Could not send the reset email.";
+        }
+    });
+}
 
 // SIGN UP
 
