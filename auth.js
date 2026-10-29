@@ -280,3 +280,154 @@ getSupabaseClient().auth.onAuthStateChange(function () {
         updateAuthNavigation();
     }, 0);
 });
+// FORGOT PASSWORD: send the reset email.
+
+const forgotPasswordForm = document.querySelector("#forgot-password-form");
+
+if (forgotPasswordForm) {
+    forgotPasswordForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const message = document.querySelector("#forgot-password-message");
+        const email = document.querySelector("#forgot-email").value.trim();
+        const button = forgotPasswordForm.querySelector("button[type='submit']");
+
+        message.textContent = "Sending reset link...";
+        button.disabled = true;
+
+        try {
+            const client = getSupabaseClient();
+
+            const redirectTo = new URL(
+                "reset-password.html",
+                window.location.href
+            ).href;
+
+            const { error } = await client.auth.resetPasswordForEmail(email, {
+                redirectTo: redirectTo
+            });
+
+            if (error) {
+                throw error;
+            }
+
+            message.textContent =
+                "If an account exists for that email, a reset link will be sent. Check your inbox and spam folder.";
+
+            forgotPasswordForm.reset();
+        } catch (error) {
+            message.textContent =
+                error.message || "Could not send the reset email. Please try again.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
+
+// RESET PASSWORD: save the new password.
+
+const resetPasswordForm = document.querySelector("#reset-password-form");
+
+if (resetPasswordForm) {
+    const message = document.querySelector("#reset-password-message");
+    const passwordInput = document.querySelector("#new-password");
+    const confirmInput = document.querySelector("#confirm-password");
+    const submitButton = resetPasswordForm.querySelector("button[type='submit']");
+
+    let resetSessionReady = false;
+
+    async function checkResetSession() {
+        try {
+            const client = getSupabaseClient();
+
+            const { data, error } = await client.auth.getSession();
+
+            if (error) {
+                throw error;
+            }
+
+            resetSessionReady = Boolean(data.session);
+
+            if (!resetSessionReady) {
+                message.textContent =
+                    "Open this page using the password reset link sent to your email. If the link expired, request a new one.";
+
+                submitButton.disabled = true;
+            }
+        } catch (error) {
+            message.textContent =
+                "We couldn't verify your reset link. Please request a new password reset email.";
+
+            submitButton.disabled = true;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", checkResetSession);
+
+    resetPasswordForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const password = passwordInput.value;
+        const confirmPassword = confirmInput.value;
+
+        if (password.length < 6) {
+            message.textContent =
+                "Your password must contain at least 6 characters.";
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            message.textContent = "The passwords do not match.";
+            confirmInput.focus();
+            return;
+        }
+
+        submitButton.disabled = true;
+        message.textContent = "Updating your password...";
+
+        try {
+            const client = getSupabaseClient();
+
+            // Check that Supabase has a valid session from the reset link.
+            const { data, error: sessionError } =
+                await client.auth.getSession();
+
+            if (sessionError) {
+                throw sessionError;
+            }
+
+            if (!data.session) {
+                throw new Error(
+                    "Your reset link is missing or has expired. Please request a new one."
+                );
+            }
+
+            const { error } = await client.auth.updateUser({
+                password: password
+            });
+
+            if (error) {
+                throw error;
+            }
+
+            // Sign out the recovery session so the user logs in again.
+            await client.auth.signOut();
+
+            resetPasswordForm.reset();
+
+            message.textContent = "Your password has been updated successfully. ";
+
+            const loginLink = document.createElement("a");
+            loginLink.href = "login.html";
+            loginLink.textContent = "Log in with your new password";
+
+            message.appendChild(loginLink);
+        } catch (error) {
+            message.textContent =
+                error.message || "Could not update your password. Please try again.";
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+}
