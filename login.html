@@ -13,6 +13,7 @@
   <main class="auth-page">
     <form class="auth-form" id="login-form">
       <a class="auth-brand" href="index.html">Kenyan <strong>Artisans</strong></a>
+      <button type="button" id="auth-theme-toggle">Dark mode</button>
       <h1>Welcome back</h1>
       <p>Sign in to your Kenyan Artisans account.</p>
 
@@ -40,6 +41,24 @@ const savedTheme = localStorage.getItem("kenyanArtisansTheme");
 if (savedTheme === "dark") {
   document.body.classList.add("dark-mode");
 }
+const themeButton = document.getElementById("auth-theme-toggle");
+
+function updateThemeButton() {
+  const isDark = document.body.classList.contains("dark-mode");
+  themeButton.textContent = isDark ? " Light mode" : " Dark mode";
+}
+
+themeButton.addEventListener("click", function () {
+  const isDark = document.body.classList.toggle("dark-mode");
+  const theme = isDark ? "dark" : "light";
+
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("kenyanArtisansTheme", theme);
+
+  updateThemeButton();
+});
+
+updateThemeButton();
   const passwordInput = document.getElementById("password");
   const showPassword = document.getElementById("show-password");
 
