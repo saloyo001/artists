@@ -33,7 +33,13 @@
       <a href="index.html">Back to the marketplace</a>
     </form>
   </main>
+  
    <script>
+const savedTheme = localStorage.getItem("kenyanArtisansTheme");
+
+if (savedTheme === "dark") {
+  document.body.classList.add("dark-mode");
+}
   const passwordInput = document.getElementById("password");
   const showPassword = document.getElementById("show-password");
 
