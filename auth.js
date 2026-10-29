@@ -313,3 +313,30 @@ getSupabaseClient().auth.onAuthStateChange(function () {
         updateAuthNavigation();
     }, 0);
 });
+
+const resetPasswordForm = document.querySelector("#reset-password-form");
+
+if (resetPasswordForm) {
+    resetPasswordForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const password = document.querySelector("#new-password").value;
+        const message = document.querySelector("#reset-message");
+
+        message.textContent = "Updating password...";
+
+        try {
+            const client = getSupabaseClient();
+            const { error } = await client.auth.updateUser({ password });
+
+            if (error) {
+                throw error;
+            }
+
+            message.textContent = "Password updated successfully! You can now log in.";
+            resetPasswordForm.reset();
+        } catch (error) {
+            message.textContent = error.message || "Could not update your password.";
+        }
+    });
+}
