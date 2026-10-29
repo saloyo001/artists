@@ -81,3 +81,23 @@
   width: auto;
   margin: 0;
 }
+
+.auth-page-body.dark-mode .auth-page {
+  background: #151a18;
+}
+
+.auth-page-body.dark-mode .auth-form {
+  background: #222a26;
+  color: #f4f1e8;
+}
+
+.auth-page-body.dark-mode .auth-form h1,
+.auth-page-body.dark-mode .auth-brand {
+  color: #a8d5b8;
+}
+
+.auth-page-body.dark-mode .auth-form input {
+  background: #18201c;
+  color: #ffffff;
+  border-color: #52645a;
+}
