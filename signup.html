@@ -4,90 +4,198 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Sign Up | Kenyan Artisans</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="auth-style.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth.js" defer></script>
 </head>
+
 <body>
   <main class="auth-page">
+
     <form class="auth-form" id="signup-form">
-      <a class="auth-brand" href="index.html">Kenyan <strong>Artisans</strong></a>
+
+      <a class="auth-brand" href="index.html">
+        Kenyan <strong>Artisans</strong>
+      </a>
+
       <h1>Create an account</h1>
       <p>Join the Kenyan Artisans community.</p>
 
       <label for="name">Your name</label>
-      <input type="text" id="name" name="name" autocomplete="name" maxlength="80" required>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        autocomplete="name"
+        maxlength="80"
+        required
+      >
 
       <label for="email">Email address</label>
-      <input type="email" id="email" name="email" autocomplete="email" required>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        autocomplete="email"
+        required
+      >
 
-      
-<label for="password">Create a password</label>
-<input type="password" id="password" name="password"
-  autocomplete="new-password" minlength="6" required>
+      <label for="password">Create a password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        autocomplete="new-password"
+        minlength="6"
+        required
+      >
 
-<label class="show-password-label">
-  <input type="checkbox" id="show-password">
-  Show password
-</label>
+      <label class="show-password-label" for="show-password">
+        <input type="checkbox" id="show-password">
+        Show password
+      </label>
 
-<small>Use at least 6 characters for this demo.</small>
-
+      <small>Use at least 6 characters for this demo.</small>
 
       <label for="role">Join as</label>
-      <select id="role" name="role">
+
+      <select id="role" name="role" required>
         <option value="customer" selected>Customer</option>
-        <option value="seller">Seller</option>
+        <option value="seller">Seller / Artisan</option>
       </select>
 
+      <!-- This field is only displayed to sellers. -->
       <div id="username-field" hidden>
+
         <label for="username">Seller username</label>
+
         <input
           type="text"
           id="username"
           name="username"
           maxlength="30"
           autocomplete="username"
-          placeholder="Choose an Alias"
+          placeholder="Choose an alias"
           pattern="[A-Za-z0-9_]+"
           title="Use only letters, numbers, and underscores."
           disabled
         >
+
         <small>Use letters, numbers, or underscores.</small>
+
+      </div>
+
+      <!-- Seller-only Terms and Conditions checkbox. -->
+      <div id="artisan-agreement-field" hidden>
+
+        <label class="terms-checkbox" for="artisan-agreement-accepted">
+
+          <input
+            type="checkbox"
+            id="artisan-agreement-accepted"
+            name="artisan_agreement_accepted"
+            disabled
+            required
+          >
+
+          <span>
+            I accept the
+            <a
+              href="artisan-participation-agreement.html"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Terms and Conditions</a>.
+          </span>
+
+        </label>
+
       </div>
 
       <button type="submit">Create account</button>
-      <p class="auth-message" id="signup-message" aria-live="polite"></p>
 
-      <p>Already have an account? <a href="login.html">Log in</a></p>
+      <p
+        class="auth-message"
+        id="signup-message"
+        aria-live="polite"
+      ></p>
+
+      <p>
+        Already have an account?
+        <a href="login.html">Log in</a>
+      </p>
+
       <a href="index.html">Back to the marketplace</a>
+
     </form>
   </main>
 
   <script>
+    // Get the account type and seller-only form elements.
     const roleSelect = document.getElementById("role");
-    const usernameField = document.getElementById("username-field");
-    const usernameInput = document.getElementById("username");
 
-    roleSelect.addEventListener("change", function () {
+    const usernameField =
+      document.getElementById("username-field");
+
+    const usernameInput =
+      document.getElementById("username");
+
+    const agreementField =
+      document.getElementById("artisan-agreement-field");
+
+    const agreementCheckbox =
+      document.getElementById("artisan-agreement-accepted");
+
+
+    // Show the username and Terms and Conditions
+    // only when someone selects Seller / Artisan.
+    function updateSellerFields() {
+
       const isSeller = roleSelect.value === "seller";
 
+      // Seller username.
       usernameField.hidden = !isSeller;
       usernameInput.disabled = !isSeller;
       usernameInput.required = isSeller;
 
+      // Terms and Conditions.
+      agreementField.hidden = !isSeller;
+      agreementCheckbox.disabled = !isSeller;
+      agreementCheckbox.required = isSeller;
+
+      // Clear seller-only information when switching to customer.
       if (!isSeller) {
         usernameInput.value = "";
+        agreementCheckbox.checked = false;
       }
-    });
-    const passwordInput = document.getElementById("password");
-const showPassword = document.getElementById("show-password");
+    }
 
-showPassword.addEventListener("change", function () {
-  passwordInput.type = showPassword.checked ? "text" : "password";
-});
+    // Update the form whenever the account type changes.
+    roleSelect.addEventListener("change", updateSellerFields);
+
+    // Set the correct fields when the page first opens.
+    updateSellerFields();
+
+
+    // Show or hide the password.
+    const passwordInput =
+      document.getElementById("password");
+
+    const showPassword =
+      document.getElementById("show-password");
+
+    showPassword.addEventListener("change", function () {
+
+      passwordInput.type =
+        showPassword.checked ? "text" : "password";
+
+    });
+
   </script>
+
 </body>
 </html>

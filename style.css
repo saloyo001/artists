@@ -2252,3 +2252,38 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
         color: #08783e;
     }
 }
+.signature-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13px;
+}
+
+.signature-table th,
+.signature-table td {
+    border: 1px solid #333;
+    padding: 12px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.signature-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.signature-table tbody td {
+    height: 75px;
+}
+
+@media print {
+    .signature-table {
+        page-break-inside: avoid;
+    }
+
+    .signature-table th {
+        background-color: #f2f2f2 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
