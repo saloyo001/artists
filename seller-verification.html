@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Apply to become a verified seller on Kenyan Artisans.">
+  <title>Seller Verification | Kenyan Artisans</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="auth.js"></script>
+  <style>
+    :root{--ink:#20231d;--green:#245b3d;--red:#a52a2a;--cream:#f7f3e9;--paper:#fffdf8;--muted:#77766d;--border:#e7e0d2}
+    *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Georgia,"Times New Roman",serif}a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 6%;background:var(--paper);border-bottom:1px solid var(--border)}.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:42px;height:42px;display:grid;place-items:center;border:1px solid #b89a62;color:var(--green);font-size:21px;transform:rotate(45deg)}.brand-mark span{transform:rotate(-45deg)}.brand-name{font-size:18px}.brand-name small{display:block;margin-top:5px;color:var(--muted);font:9px Arial,sans-serif;letter-spacing:2px}.market-link{color:var(--green);font:bold 12px Arial,sans-serif}.wrap{max-width:850px;margin:0 auto;padding:46px 22px 70px}.eyebrow{color:var(--red);font:bold 10px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase}.intro h1{font-size:clamp(32px,5vw,48px);font-weight:normal;line-height:1.12;margin:13px 0}.intro p{max-width:680px;color:var(--muted);font:14px/1.8 Arial,sans-serif}.notice{margin:24px 0;padding:16px 18px;border-left:4px solid var(--green);background:#e8eee4;font:13px/1.7 Arial,sans-serif}.notice[data-status="rejected"],.notice[data-status="needs_changes"]{border-left-color:var(--red);background:#f7e9e5}.notice[data-status="approved"]{background:#e8eee4}.panel{margin-top:24px;padding:26px;background:var(--paper);border:1px solid var(--border)}.panel h2{margin:0 0 8px;font-size:25px;font-weight:normal}.panel>p{color:var(--muted);font:12px/1.7 Arial,sans-serif}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}.field{display:flex;flex-direction:column;gap:8px;font:12px Arial,sans-serif}.field.full{grid-column:1/-1}.payment-fields[hidden]{display:none!important}.field input,.field textarea,.field select{width:100%;padding:12px;border:1px solid var(--border);background:#fff;color:var(--ink);border-radius:2px}.field textarea{min-height:130px;resize:vertical;line-height:1.6}.field input[type="checkbox"]{width:auto;align-self:flex-start;padding:0;margin-top:3px}.field input[type="file"]{font:12px Arial,sans-serif;padding:10px;background:#fff}.hint{color:var(--muted);font-size:11px;line-height:1.6}.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:3px;background:var(--green);color:white;padding:14px 20px;cursor:pointer;font:bold 12px Arial,sans-serif}.btn:disabled{opacity:.6;cursor:not-allowed}.message{margin:16px 0 0;color:var(--red);font:13px/1.7 Arial,sans-serif}.message.success{color:var(--green)}.footer{padding:22px;text-align:center;border-top:1px solid var(--border);color:var(--muted);font:11px Arial,sans-serif}@media(max-width:620px){.topbar{padding:15px 20px}.wrap{padding:32px 18px 50px}.panel{padding:20px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.brand-name{font-size:16px}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="Kenyan Artisans home">
+      <span class="brand-mark"><span>KA</span></span>
+      <span class="brand-name">Kenyan Artisans<small>MADE WITH HEART</small></span>
+    </a>
+    <a class="market-link" href="index.html">Visit marketplace ↗</a>
+  </header>
+
+  <main class="wrap">
+    <section class="intro">
+      <div class="eyebrow">Our makers. Our trust.</div>
+      <h1>Let buyers know the artist behind the art.</h1>
+      <p>Verification is optional for using your seller studio. It is required before direct-to-seller payments can be enabled. Submit your artisan details and portfolio for review by the Kenyan Artisans team.</p>
+    </section>
+
+    <div id="status-notice" class="notice" aria-live="polite">Checking your seller verification…</div>
+
+    <section class="panel" id="application-panel" hidden>
+      <h2>Seller verification request</h2>
+      <p>Share your contact details, tell us about your craft, choose how customers can pay you directly, and upload a clear image or PDF of your identity document. For a Kenyan national ID card, upload both sides. A passport photo page can be uploaded as the front document. Never enter a PIN, password, one-time code, or banking login.</p>
+      <form id="verification-form" class="form-grid">
+        <label class="field">Full name
+          <input id="full-name" name="full_name" autocomplete="name" maxlength="100" required>
+        </label>
+        <label class="field">Phone number
+          <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="25" placeholder="0712 345 678" required>
+        </label>
+        <label class="field full">County or town
+          <input id="county" name="county" maxlength="80" placeholder="e.g. Kisumu County" required>
+        </label>
+        <label class="field full">Tell us about your craft
+          <textarea id="artisan-story" name="artisan_story" minlength="20" maxlength="1200" placeholder="What do you make? Which materials or techniques do you use? How do you make your work?" required></textarea>
+          <span class="hint">Write at least 20 characters. You can also explain the inspiration behind your work.</span>
+        </label>
+        <label class="field full">Portfolio or public artwork link (optional)
+          <input id="portfolio-url" name="portfolio_url" type="url" maxlength="500" placeholder="https://…">
+          <span class="hint">You can leave this blank if your artwork is already listed on Kenyan Artisans.</span>
+        </label>
+        <label class="field full">Preferred direct payment method
+          <select id="payment-method" name="payment_method" required>
+            <option value="">Choose a payment method</option>
+            <option value="send_money">M-PESA Send Money</option>
+            <option value="bank">Bank transfer</option>
+            <option value="buy_goods">M-PESA Buy Goods (Till)</option>
+            <option value="paybill">M-PESA Paybill</option>
+          </select>
+          <span class="hint">Payment details are intended for customers to enter manually on their phones. They are only provided to buyers after your verification is approved.</span>
+        </label>
+        <div class="field full payment-fields" id="send-money-fields" hidden>
+          <label class="field">M-PESA phone number for Send Money
+            <input id="payment-send-money-phone" type="tel" maxlength="25" placeholder="0712 345 678" autocomplete="tel">
+          </label>
+        </div>
+        <div class="field full payment-fields" id="bank-fields" hidden>
+          <div class="form-grid" style="margin-top:0">
+            <label class="field">Bank name
+              <input id="payment-bank-name" maxlength="100" placeholder="e.g. KCB">
+            </label>
+            <label class="field">Account holder name
+              <input id="payment-bank-account-name" maxlength="100" placeholder="Name as registered with bank">
+            </label>
+            <label class="field">Account number
+              <input id="payment-bank-account-number" maxlength="60" autocomplete="off">
+            </label>
+            <label class="field">Branch (optional)
+              <input id="payment-bank-branch" maxlength="100" placeholder="Branch name or code">
+            </label>
+          </div>
+        </div>
+        <div class="field full payment-fields" id="buy-goods-fields" hidden>
+          <label class="field">M-PESA Till number
+            <input id="payment-till-number" maxlength="60" inputmode="numeric" placeholder="Enter Buy Goods Till number">
+          </label>
+        </div>
+        <div class="field full payment-fields" id="paybill-fields" hidden>
+          <div class="form-grid" style="margin-top:0">
+            <label class="field">Paybill business number
+              <input id="payment-paybill-number" maxlength="60" inputmode="numeric" placeholder="Enter Paybill number">
+            </label>
+            <label class="field">Account number / reference
+              <input id="payment-paybill-account-number" maxlength="80" placeholder="e.g. ORDER_REFERENCE or a fixed account number">
+              <span class="hint">Enter ORDER_REFERENCE if you want checkout to insert the order's unique reference automatically.</span>
+            </label>
+          </div>
+        </div>
+        <p class="hint field full">Only enter payment identifiers customers need to send you money, such as a phone number, Till, Paybill, or bank account. Never enter an M-PESA PIN, ATM PIN, password, OTP, card CVV, or online banking credentials.</p>
+        <label class="field full">Identity document — front or passport photo page *
+          <input id="id-front" name="id_front" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf" required>
+          <span class="hint">Required. JPG, PNG, WebP, or PDF; maximum 5 MB. Make sure the name and photo/text are readable.</span>
+        </label>
+        <label class="field full">Identity document — back of national ID (optional for passports)
+          <input id="id-back" name="id_back" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf">
+          <span class="hint">For a Kenyan national ID card, upload the reverse side too. Maximum 5 MB.</span>
+        </label>
+        <p class="hint field full" id="existing-documents" aria-live="polite">ID documents are stored in a private area and can only be accessed by you and authorised marketplace administrators for verification.</p>
+        <label class="field full" style="flex-direction:row;align-items:flex-start;gap:10px;line-height:1.6">
+          <input id="id-consent" type="checkbox" required>
+          <span>I confirm these documents belong to me and consent to Kenyan Artisans using them to verify my seller identity.</span>
+        </label>
+        <div class="field full">
+          <button class="btn" id="submit-button" type="submit">Submit for review ↗</button>
+          <p id="form-message" class="message" aria-live="polite" hidden></p>
+        </div>
+      </form>
+    </section>
+  </main>
+  <footer class="footer">© <span id="year"></span> Kenyan Artisans · Celebrating Kenyan creativity.</footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const notice = document.getElementById("status-notice");
+      const panel = document.getElementById("application-panel");
+      const form = document.getElementById("verification-form");
+      const message = document.getElementById("form-message");
+      const submitButton = document.getElementById("submit-button");
+      let client;
+      let user;
+      let currentIdFrontPath = null;
+      let currentIdBackPath = null;
+      const idBucket = "seller-id-documents";
+      const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+      const maxIdFileSize = 5 * 1024 * 1024;
+      const paymentMethodInput = document.getElementById("payment-method");
+      const paymentFieldGroups = {
+        send_money: document.getElementById("send-money-fields"),
+        bank: document.getElementById("bank-fields"),
+        buy_goods: document.getElementById("buy-goods-fields"),
+        paybill: document.getElementById("paybill-fields")
+      };
+      const requiredPaymentInputs = {
+        send_money: ["payment-send-money-phone"],
+        bank: ["payment-bank-name", "payment-bank-account-name", "payment-bank-account-number"],
+        buy_goods: ["payment-till-number"],
+        paybill: ["payment-paybill-number", "payment-paybill-account-number"]
+      };
+
+      function updatePaymentFields() {
+        const selected = paymentMethodInput.value;
+        Object.entries(paymentFieldGroups).forEach(([method, group]) => {
+          group.hidden = method !== selected;
+          group.querySelectorAll("input").forEach(input => {
+            input.required = method === selected && (requiredPaymentInputs[method] || []).includes(input.id);
+          });
+        });
+      }
+      paymentMethodInput.addEventListener("change", updatePaymentFields);
+      updatePaymentFields();
+
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      function showMessage(text, success = false) {
+        message.hidden = !text;
+        message.textContent = text || "";
+        message.classList.toggle("success", success);
+      }
+
+      function displayStatus(record) {
+        const status = record?.status || "not_submitted";
+        notice.dataset.status = status;
+        if (status === "pending") {
+          notice.textContent = "Your verification request is awaiting review. You can continue using your seller dashboard. You may update your application below; every resubmission returns it to pending review.";
+        } else if (status === "rejected") {
+          notice.textContent = "Your request was not approved. You can still use your seller dashboard. Read the review note and update your application below. Note: " + (record.admin_note || "No additional note was provided.");
+        } else if (status === "needs_changes") {
+          notice.textContent = "A few changes are needed before verification. You can still use your seller dashboard. Review note: " + (record.admin_note || "Please update your details and resubmit.");
+        } else {
+          notice.textContent = "You have not submitted a seller verification request yet. Complete the form below to begin.";
+        }
+      }
+
+      async function loadApplication() {
+        const { data, error } = await client
+          .from("seller_verifications")
+          .select("full_name,phone,county,artisan_story,portfolio_url,id_front_path,id_back_path,payment_method,payment_send_money_phone,payment_bank_name,payment_bank_account_name,payment_bank_account_number,payment_bank_branch,payment_till_number,payment_paybill_number,payment_paybill_account_number,status,admin_note")
+          .eq("seller_id", user.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (data?.status === "approved") {
+          window.location.replace("seller.html");
+          return data;
+        }
+        displayStatus(data);
+        currentIdFrontPath = data?.id_front_path || null;
+        currentIdBackPath = data?.id_back_path || null;
+        document.getElementById("id-front").required = !currentIdFrontPath;
+        document.getElementById("existing-documents").textContent = currentIdFrontPath
+          ? `Existing ID documents are on file (front: available; back: ${currentIdBackPath ? "available" : "not provided"}). Choose a new file only if you want to replace it. Documents are private and accessible only to you and authorised marketplace administrators.`
+          : "No ID document is on file yet. ID documents are stored privately and accessible only to you and authorised marketplace administrators.";
+        if (data) {
+          document.getElementById("full-name").value = data.full_name || "";
+          document.getElementById("phone").value = data.phone || "";
+          document.getElementById("county").value = data.county || "";
+          document.getElementById("artisan-story").value = data.artisan_story || "";
+          document.getElementById("portfolio-url").value = data.portfolio_url || "";
+          paymentMethodInput.value = data.payment_method || "";
+          document.getElementById("payment-send-money-phone").value = data.payment_send_money_phone || "";
+          document.getElementById("payment-bank-name").value = data.payment_bank_name || "";
+          document.getElementById("payment-bank-account-name").value = data.payment_bank_account_name || "";
+          document.getElementById("payment-bank-account-number").value = data.payment_bank_account_number || "";
+          document.getElementById("payment-bank-branch").value = data.payment_bank_branch || "";
+          document.getElementById("payment-till-number").value = data.payment_till_number || "";
+          document.getElementById("payment-paybill-number").value = data.payment_paybill_number || "";
+          document.getElementById("payment-paybill-account-number").value = data.payment_paybill_account_number || "";
+        }
+        updatePaymentFields();
+        panel.hidden = false;
+        return data;
+      }
+
+      async function uploadIdFile(input, kind, newUploadPaths) {
+        const file = input.files && input.files[0];
+        if (!file) return null;
+        if (!allowedMimeTypes.has(file.type)) {
+          throw new Error("ID documents must be JPG, PNG, WebP, or PDF files.");
+        }
+        if (file.size > maxIdFileSize) {
+          throw new Error("Each ID document must be 5 MB or smaller.");
+        }
+        const extensionByType = {
+          "image/jpeg": "jpg",
+          "image/png": "png",
+          "image/webp": "webp",
+          "application/pdf": "pdf"
+        };
+        const path = `${user.id}/${kind}-${Date.now()}.${extensionByType[file.type]}`;
+        const { error: uploadError } = await client.storage.from(idBucket).upload(path, file, {
+          cacheControl: "0",
+          contentType: file.type,
+          upsert: false
+        });
+        if (uploadError) throw uploadError;
+        newUploadPaths.push(path);
+        return path;
+      }
+
+      try {
+        if (typeof getSupabaseClient !== "function") throw new Error("Supabase did not load. Check the Supabase and auth.js script tags.");
+        client = getSupabaseClient();
+        const { data: sessionData, error: sessionError } = await client.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!sessionData.session) {
+          window.location.replace("login.html");
+          return;
+        }
+        user = sessionData.session.user;
+
+        const { data: profile, error: profileError } = await client
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        if (profileError || !profile) throw new Error("Your user profile could not be found. Log out and sign in again.");
+        if (profile.role !== "seller") {
+          window.location.replace(profile.role === "customer" ? "customer.html" : "login.html");
+          return;
+        }
+        await loadApplication();
+      } catch (error) {
+        notice.dataset.status = "error";
+        notice.textContent = error.message || "Could not load seller verification. Check your Supabase setup and try again.";
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!client || !user) return;
+        submitButton.disabled = true;
+        submitButton.textContent = "Uploading documents…";
+        showMessage("");
+        const newUploadPaths = [];
+        let saved = false;
+        try {
+          const newFrontPath = await uploadIdFile(document.getElementById("id-front"), "id-front", newUploadPaths);
+          const newBackPath = await uploadIdFile(document.getElementById("id-back"), "id-back", newUploadPaths);
+          const idFrontPath = newFrontPath || currentIdFrontPath;
+          const idBackPath = newBackPath || currentIdBackPath;
+          if (!idFrontPath) throw new Error("Please upload the front/photo page of your identity document.");
+          if (!document.getElementById("id-consent").checked) throw new Error("Please confirm that you consent to identity verification.");
+
+          submitButton.textContent = "Submitting for review…";
+          const { error } = await client.rpc("submit_seller_verification", {
+            p_full_name: document.getElementById("full-name").value.trim(),
+            p_phone: document.getElementById("phone").value.trim(),
+            p_county: document.getElementById("county").value.trim(),
+            p_artisan_story: document.getElementById("artisan-story").value.trim(),
+            p_portfolio_url: document.getElementById("portfolio-url").value.trim() || null,
+            p_id_front_path: idFrontPath,
+            p_id_back_path: idBackPath,
+            p_payment_method: paymentMethodInput.value,
+            p_payment_send_money_phone: paymentMethodInput.value === "send_money" ? document.getElementById("payment-send-money-phone").value.trim() : null,
+            p_payment_bank_name: paymentMethodInput.value === "bank" ? document.getElementById("payment-bank-name").value.trim() : null,
+            p_payment_bank_account_name: paymentMethodInput.value === "bank" ? document.getElementById("payment-bank-account-name").value.trim() : null,
+            p_payment_bank_account_number: paymentMethodInput.value === "bank" ? document.getElementById("payment-bank-account-number").value.trim() : null,
+            p_payment_bank_branch: paymentMethodInput.value === "bank" ? document.getElementById("payment-bank-branch").value.trim() || null : null,
+            p_payment_till_number: paymentMethodInput.value === "buy_goods" ? document.getElementById("payment-till-number").value.trim() : null,
+            p_payment_paybill_number: paymentMethodInput.value === "paybill" ? document.getElementById("payment-paybill-number").value.trim() : null,
+            p_payment_paybill_account_number: paymentMethodInput.value === "paybill" ? document.getElementById("payment-paybill-account-number").value.trim() : null
+          });
+          if (error) throw error;
+          saved = true;
+
+          const oldPaths = [];
+          if (currentIdFrontPath && currentIdFrontPath !== idFrontPath) oldPaths.push(currentIdFrontPath);
+          if (currentIdBackPath && currentIdBackPath !== idBackPath) oldPaths.push(currentIdBackPath);
+          if (oldPaths.length) {
+            const { error: cleanupError } = await client.storage.from(idBucket).remove(oldPaths);
+            if (cleanupError) console.warn("Old ID document cleanup failed:", cleanupError.message);
+          }
+          currentIdFrontPath = idFrontPath;
+          currentIdBackPath = idBackPath;
+          document.getElementById("id-front").value = "";
+          document.getElementById("id-back").value = "";
+          document.getElementById("id-front").required = false;
+          showMessage("Your verification request, ID documents, and payment instructions have been submitted. You can continue using your seller dashboard while the team reviews your application. Customers can receive these payment instructions only after approval.", true);
+          await loadApplication();
+        } catch (error) {
+          if (!saved && newUploadPaths.length) {
+            const { error: cleanupError } = await client.storage.from(idBucket).remove(newUploadPaths);
+            if (cleanupError) console.warn("Temporary ID upload cleanup failed:", cleanupError.message);
+          }
+          showMessage(error.message || "Could not submit your verification request.");
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Submit for review ↗";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
