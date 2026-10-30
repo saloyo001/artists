@@ -1,7 +1,8 @@
-
+// Supabase project details used by the website.
 const SUPABASE_URL = "https://dpkttivsoqfoumahieqx.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lRBZmxGIQ_MdH371SSVwGg_xvCGeSyq";
 
+// Keep one Supabase connection and reuse it on this page.
 let supabaseClient = null;
 
 function getSupabaseClient() {
@@ -30,7 +31,6 @@ function getSupabaseClient() {
 
 
 // LOGIN
-
 const loginForm = document.querySelector("#login-form");
 
 if (loginForm) {
@@ -73,6 +73,9 @@ if (loginForm) {
                 window.location.href = "seller.html";
             } else if (profile.role === "customer") {
                 window.location.href = "customer.html";
+            } else if (profile.role === "admin") {
+                // Administrators go straight to the seller-application review page.
+                window.location.href = "seller-verification-admin.html";
             } else {
                 throw new Error("Your account has an invalid role.");
             }
@@ -86,7 +89,6 @@ if (loginForm) {
 
 
 // SIGN UP
-
 const signupForm = document.querySelector("#signup-form");
 
 if (signupForm) {
@@ -99,10 +101,12 @@ if (signupForm) {
         const password = document.querySelector("#password").value;
         const role = document.querySelector("#role").value;
         const username = document.querySelector("#username").value.trim();
+        const agreementCheckbox = document.querySelector("#artisan-agreement-accepted");
 
         message.textContent = "Creating your account...";
 
         try {
+            // Public registration is only for sellers and customers.
             if (!["seller", "customer"].includes(role)) {
                 throw new Error("Please select a valid account type.");
             }
@@ -111,7 +115,24 @@ if (signupForm) {
                 throw new Error("Please enter your seller username.");
             }
 
+            // Only sellers/artisans must accept the Artisan Participation Agreement.
+            if (role === "seller" && (!agreementCheckbox || !agreementCheckbox.checked)) {
+                throw new Error("Please open, read, and accept the Artisan Participation Agreement to create a seller account.");
+            }
+
             const client = getSupabaseClient();
+
+            // Keep the agreement version with the signup record so the accepted
+            // version can be identified later. The SQL trigger records the server time.
+            const agreementVersion = "2026-10-30-v1";
+
+            const signupMetadata = {
+                full_name: name,
+                role: role,
+                username: role === "seller" ? username : null,
+                artisan_agreement_accepted: role === "seller",
+                artisan_agreement_version: role === "seller" ? agreementVersion : null
+            };
 
             const { data, error } = await client.auth.signUp({
                 email,
@@ -119,11 +140,7 @@ if (signupForm) {
                 options: {
                     emailRedirectTo:
                         window.location.origin + "/login.html",
-                    data: {
-                        full_name: name,
-                        role: role,
-                        username: role === "seller" ? username : null
-                    }
+                    data: signupMetadata
                 }
             });
 
@@ -151,6 +168,9 @@ if (signupForm) {
                     window.location.href = "seller.html";
                 } else if (profile.role === "customer") {
                     window.location.href = "customer.html";
+                } else if (profile.role === "admin") {
+                    // This is normally not used for public signup, but handles the role safely.
+                    window.location.href = "seller-verification-admin.html";
                 } else {
                     message.textContent =
                         "Your account was created, but its role is invalid.";
@@ -171,8 +191,7 @@ if (signupForm) {
 }
 
 
-// NAVIGATION FOR SELLERS AND CUSTOMERS
-
+// NAVIGATION FOR SELLERS, CUSTOMERS, AND ADMINISTRATORS
 async function updateAuthNavigation() {
     const authLink = document.getElementById("auth-link");
     const signupLink = document.getElementById("signup-link");
@@ -258,6 +277,12 @@ async function updateAuthNavigation() {
                 dashboardLink.textContent = "My Dashboard";
                 dashboardLink.hidden = false;
             }
+        } else if (profile.role === "admin") {
+            if (dashboardLink) {
+                dashboardLink.href = "seller-verification-admin.html";
+                dashboardLink.textContent = "Admin Dashboard";
+                dashboardLink.hidden = false;
+            }
         }
 
     } catch (error) {
@@ -266,22 +291,21 @@ async function updateAuthNavigation() {
 }
 
 
-// RUN THE NAVIGATION CHECK
-
+// Run navigation after the page's HTML has loaded.
 document.addEventListener("DOMContentLoaded", function () {
     updateAuthNavigation();
 });
 
 
-// UPDATE WHEN LOGIN STATE CHANGES
-
+// Refresh navigation when login state changes.
 getSupabaseClient().auth.onAuthStateChange(function () {
     setTimeout(function () {
         updateAuthNavigation();
     }, 0);
 });
-// FORGOT PASSWORD: send the reset email.
 
+
+// FORGOT PASSWORD: send the password-reset email.
 const forgotPasswordForm = document.querySelector("#forgot-password-form");
 
 if (forgotPasswordForm) {
@@ -297,7 +321,6 @@ if (forgotPasswordForm) {
 
         try {
             const client = getSupabaseClient();
-
             const redirectTo = new URL(
                 "reset-password.html",
                 window.location.href
@@ -326,7 +349,6 @@ if (forgotPasswordForm) {
 
 
 // RESET PASSWORD: save the new password.
-
 const resetPasswordForm = document.querySelector("#reset-password-form");
 
 if (resetPasswordForm) {
@@ -340,7 +362,6 @@ if (resetPasswordForm) {
     async function checkResetSession() {
         try {
             const client = getSupabaseClient();
-
             const { data, error } = await client.auth.getSession();
 
             if (error) {
@@ -352,13 +373,11 @@ if (resetPasswordForm) {
             if (!resetSessionReady) {
                 message.textContent =
                     "Open this page using the password reset link sent to your email. If the link expired, request a new one.";
-
                 submitButton.disabled = true;
             }
         } catch (error) {
             message.textContent =
                 "We couldn't verify your reset link. Please request a new password reset email.";
-
             submitButton.disabled = true;
         }
     }
@@ -388,8 +407,6 @@ if (resetPasswordForm) {
 
         try {
             const client = getSupabaseClient();
-
-            // Check that Supabase has a valid session from the reset link.
             const { data, error: sessionError } =
                 await client.auth.getSession();
 
@@ -411,9 +428,7 @@ if (resetPasswordForm) {
                 throw error;
             }
 
-            // Sign out the recovery session so the user logs in again.
             await client.auth.signOut();
-
             resetPasswordForm.reset();
 
             message.textContent = "Your password has been updated successfully. ";
@@ -421,7 +436,6 @@ if (resetPasswordForm) {
             const loginLink = document.createElement("a");
             loginLink.href = "login.html";
             loginLink.textContent = "Log in with your new password";
-
             message.appendChild(loginLink);
         } catch (error) {
             message.textContent =

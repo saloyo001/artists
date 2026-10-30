@@ -82,6 +82,7 @@
   margin: 0;
 }
 
+<<<<<<< HEAD
 .auth-page-body.dark-mode .auth-page {
   background: #151a18;
 }
@@ -101,3 +102,33 @@
   color: #ffffff;
   border-color: #52645a;
 }
+=======
+/* Keep seller-only fields hidden when not needed. */
+#username-field[hidden],
+#artisan-agreement-field[hidden] {
+    display: none !important;
+}
+
+/* Terms and Conditions checkbox layout. */
+.terms-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 18px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    cursor: pointer;
+}
+
+.terms-checkbox input {
+    width: auto;
+    margin-top: 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.terms-checkbox a {
+    font-weight: 600;
+    text-decoration: underline;
+}
+>>>>>>> origin/main
