@@ -139,10 +139,10 @@ h1 em, h2 em { color: var(--red); font-weight: 600; }
 .category-card:before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg,#111e 0%,#1111 100%); transition: opacity .25s; }
 .category-card:hover:before { opacity: .7; }.category-card:hover { transform: translateY(-4px); }
 .category-card > span { font-size: .6rem; letter-spacing: .16em; }.category-card strong { font-family: 'Playfair Display',Georgia,serif; font-size: 1.25rem; }.category-card small { font-size: .68rem; }
-.category-paint { background-image: url('https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=700&q=80'); }
-.category-beads { background-image: url('https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=700&q=80'); }
+.category-paint { background-image: url('painting.png'); }
+.category-beads { background-image: url('beads.png'); }
 .category-home { background-image: url('https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=700&q=80'); }
-.category-textile { background-image: url('https://images.unsplash.com/photo-1600166898405-da9535204843?auto=format&fit=crop&w=700&q=80'); }
+.category-textile { background-image: url('textile.png'); }
 
 .artisan-section { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 9%; padding: 100px 10%; }
 .artisan-art { position: relative; max-width: 490px; }
