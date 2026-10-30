@@ -82,6 +82,10 @@
   margin: 0;
 }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/mark-dev
 .auth-page-body.dark-mode .auth-page {
   background: #151a18;
 }
@@ -101,6 +105,10 @@
   color: #ffffff;
   border-color: #52645a;
 }
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/mark-dev
 /* Keep seller-only fields hidden when not needed. */
 #username-field[hidden],
 #artisan-agreement-field[hidden] {
@@ -129,3 +137,7 @@
     font-weight: 600;
     text-decoration: underline;
 }
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> origin/mark-dev
